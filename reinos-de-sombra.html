@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no"/>
+<title>Reinos de Sombra</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:#0a0806;overflow-x:hidden;}
+::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:#1a1208;}::-webkit-scrollbar-thumb{background:#8b6914;border-radius:3px;}
+@keyframes flicker{0%,100%{opacity:1}50%{opacity:.82}}
+@keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes pulse{0%,100%{box-shadow:0 0 8px #c8960c44}50%{box-shadow:0 0 24px #c8960caa}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+@keyframes glow{0%,100%{text-shadow:0 0 8px #c8960c}50%{text-shadow:0 0 22px #ffcc44,0 0 40px #c8960c}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes atkRight{0%{transform:translateX(0)}35%{transform:translateX(38px)}65%{transform:translateX(-4px)}100%{transform:translateX(0)}}
+@keyframes atkLeft{0%{transform:translateX(0)}35%{transform:translateX(-38px)}65%{transform:translateX(4px)}100%{transform:translateX(0)}}
+@keyframes hitFlash{0%,100%{filter:brightness(1)}50%{filter:brightness(3.5) saturate(0)}}
+@keyframes castAnim{0%{transform:scale(1)}40%{transform:scale(1.25) rotate(-6deg)}70%{transform:scale(.92) rotate(4deg)}100%{transform:scale(1)}}
+@keyframes projRight{0%{transform:translateX(0);opacity:1}100%{transform:translateX(130px) scale(.2);opacity:0}}
+@keyframes projLeft{0%{transform:translateX(0);opacity:1}100%{transform:translateX(-130px) scale(.2);opacity:0}}
+@keyframes explode{0%{transform:scale(0);opacity:1}60%{transform:scale(2.2);opacity:.9}100%{transform:scale(3);opacity:0}}
+@keyframes floatHeal{0%{transform:translateY(0);opacity:1}100%{transform:translateY(-44px);opacity:0}}
+@keyframes compFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes deadAnim{0%{transform:rotate(0);opacity:1}100%{transform:rotate(85deg) translateX(8px);opacity:.25}}
+.screen{display:none;min-height:100vh;padding:13px;max-width:480px;margin:0 auto;}
+.screen.active{display:flex;flex-direction:column;animation:fadeIn .3s;}
+.card{background:linear-gradient(145deg,#2a1f0e,#1a1208,#231a0a);border:2px solid #5a4010;border-radius:8px;box-shadow:0 0 16px #00000088,inset 0 0 22px #00000044;padding:12px;margin-bottom:9px;}
+.card.sel{border-color:#c8960c!important;box-shadow:0 0 12px #c8960c55;}
+.title{font-family:Cinzel,serif;color:#c8960c;text-shadow:0 0 8px #c8960c66;}
+.label{font-family:Crimson Text,serif;color:#bfa060;}
+.dim{font-family:Crimson Text,serif;color:#6a5030;}
+.gold{font-family:Cinzel,serif;color:#c8960c;}
+.green{font-family:Cinzel,serif;color:#4aaa44;}
+.red-t{color:#c84040;font-family:Cinzel,serif;}
+.btn{font-family:Cinzel,serif;background:linear-gradient(135deg,#8b691433,#8b691466);border:1px solid #8b6914;color:#e8c84c;padding:10px 15px;border-radius:6px;cursor:pointer;font-size:12px;letter-spacing:1px;transition:all .15s;width:100%;display:block;margin-bottom:6px;text-align:center;touch-action:manipulation;}
+.btn:active{transform:scale(.97);opacity:.85;}
+.btn.red{background:linear-gradient(135deg,#c0392b33,#c0392b66);border-color:#c0392b;color:#ff9988;}
+.btn.purple{background:linear-gradient(135deg,#8e44ad33,#8e44ad66);border-color:#8e44ad;color:#cc88ff;}
+.btn.green-btn{background:linear-gradient(135deg,#1a6a1a33,#2a8a2a66);border-color:#4aaa44;color:#88ee88;}
+.btn.dim-btn{background:linear-gradient(135deg,#2a1f0e,#1a1208);border-color:#3a2a10;color:#6a5030;font-size:11px;padding:7px 10px;}
+.btn.danger{background:linear-gradient(135deg,#6a100833,#8a150866);border-color:#8a1508;color:#ff6644;}
+.btn.sm{padding:5px 9px;font-size:11px;margin-bottom:0;}
+.btn-row{display:flex;gap:6px;margin-bottom:6px;}
+.btn-row .btn{flex:1;margin-bottom:0;}
+.bar-wrap{margin-bottom:4px;}
+.bar-track{background:#0f0a04;border-radius:4px;height:9px;border:1px solid #3a2a10;overflow:hidden;}
+.bar-fill{height:100%;border-radius:4px;transition:width .4s ease;}
+.bar-lbl{font-family:Crimson Text,serif;font-size:10px;}
+.dot-bg{position:absolute;inset:0;background-image:radial-gradient(circle,#c8960c08 1px,transparent 1px);background-size:38px 38px;pointer-events:none;}
+.tag{font-family:Crimson Text,serif;color:#c8960c;font-size:10px;border:1px solid #5a4010;border-radius:20px;padding:2px 8px;background:#1a1208;display:inline-block;margin:2px;}
+.row{display:flex;align-items:center;gap:9px;}
+input.rpg{width:100%;background:#0f0a04;border:1px solid #5a4010;color:#e8c88c;padding:9px 13px;border-radius:6px;font-family:Cinzel,serif;font-size:14px;outline:none;margin-bottom:12px;}
+input.rpg::placeholder{color:#3a2a10;}
+.log-box{max-height:100px;overflow-y:auto;padding:7px;}
+.log-line{font-family:Crimson Text,serif;font-size:11px;margin-bottom:2px;}
+.log-line.new{color:#e8c88c;}.log-line.old{color:#4a3820;}
+.emoji-big{font-size:56px;text-align:center;display:block;animation:floatY 3s ease-in-out infinite;}
+.center{text-align:center;}.mt8{margin-top:8px;}.mt12{margin-top:12px;}.mt16{margin-top:16px;}.mb8{margin-bottom:8px;}.mb4{margin-bottom:4px;}
+.stat-row{display:flex;align-items:center;gap:7px;margin-bottom:8px;}
+.stat-val{font-family:Cinzel,serif;color:#e8c84c;width:28px;text-align:center;}
+.stat-btn{background:linear-gradient(135deg,#c0392b33,#c0392b55);border:1px solid #c0392b;color:#ff8888;width:26px;height:26px;border-radius:5px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;touch-action:manipulation;flex-shrink:0;}
+.stat-btn.plus{background:linear-gradient(135deg,#1a6a1a33,#2a8a2a55);border-color:#4aaa44;color:#88ee88;}
+.stat-btn:active{transform:scale(.9);}
+.tabs{display:flex;gap:0;margin-bottom:10px;border:1px solid #3a2a10;border-radius:6px;overflow:hidden;}
+.tab{flex:1;padding:7px 2px;text-align:center;font-family:Cinzel,serif;font-size:10px;color:#5a4010;cursor:pointer;background:#0f0a04;touch-action:manipulation;transition:all .15s;}
+.tab.active{background:linear-gradient(135deg,#2a1f0e,#3a2810);color:#c8960c;border-bottom:2px solid #c8960c;}
+.equip-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;}
+.equip-slot{background:#0f0a04;border:1px dashed #3a2a10;border-radius:6px;padding:7px 5px;text-align:center;cursor:pointer;min-height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;touch-action:manipulation;}
+.equip-slot.filled{border:1px solid #8b6914;background:linear-gradient(135deg,#1a1208,#2a1f0e);}
+.equip-slot:active{transform:scale(.97);}
+.slot-icon{font-size:17px;margin-bottom:2px;}
+.slot-name{font-family:Crimson Text,serif;font-size:9px;color:#5a4010;}
+.slot-item{font-family:Crimson Text,serif;font-size:10px;color:#c8960c;}
+.t-card{border:1px solid #2a1a08;border-radius:6px;padding:8px;cursor:pointer;background:#0a0804;touch-action:manipulation;transition:all .18s;}
+.t-card.unlocked{border-color:#5a4010;}
+.t-card.learned{border-color:#c8960c;background:#1a1208;}
+.t-card.locked{opacity:.28;cursor:not-allowed;border-color:#1a1208;}
+.t-card.capstone{border-color:#aa44cc55;}
+.t-card.capstone-ready{border-color:#cc44aa!important;box-shadow:0 0 8px #cc44aa44;}
+.t-connector{text-align:center;color:#3a2a10;font-size:12px;margin:1px 0;}
+.tree-row{display:flex;gap:6px;}
+.tree-row .tree-node{flex:1;}
+.tree-node{position:relative;margin-bottom:4px;}
+.market-item{display:flex;gap:8px;align-items:flex-start;padding:8px;border:1px solid #2a1a08;border-radius:6px;margin-bottom:5px;background:#0a0804;}
+.market-item.owned{border-color:#4aaa4466;background:#0a120a;}
+.market-item.cant{opacity:.4;}
+.sbox{background:#0f0a04;border:1px solid #2a1a08;border-radius:5px;padding:7px;margin-top:4px;}
+.battle-arena{position:relative;background:linear-gradient(180deg,#0a0503 0%,#150a05 40%,#0f0a06 100%);border:2px solid #3a2a10;border-radius:10px;padding:9px;margin-bottom:8px;min-height:190px;overflow:hidden;}
+.arena-bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(200,150,12,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(200,150,12,.03) 1px,transparent 1px);background-size:28px 28px;pointer-events:none;}
+.combatant{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.fighter-wrap{position:relative;width:60px;height:75px;display:flex;align-items:flex-end;justify-content:center;}
+.fighter-body{font-size:40px;line-height:1;position:absolute;bottom:0;user-select:none;}
+.fighter-body.atk-r{animation:atkRight .5s ease-out;}
+.fighter-body.atk-l{animation:atkLeft .5s ease-out;}
+.fighter-body.cast-a{animation:castAnim .5s ease-out;}
+.fighter-body.hit-a{animation:hitFlash .4s ease-out;}
+.fighter-body.dead-a{animation:deadAnim .6s forwards;}
+.fx-layer{position:absolute;inset:0;pointer-events:none;z-index:10;}
+.fx-proj{position:absolute;font-size:18px;z-index:11;}
+.fx-proj.pr{animation:projRight .35s forwards;}
+.fx-proj.pl{animation:projLeft .35s forwards;}
+.fx-exp{position:absolute;animation:explode .45s forwards;z-index:12;font-size:26px;}
+.fx-heal-txt{position:absolute;font-family:Cinzel,serif;font-size:13px;font-weight:bold;animation:floatHeal .8s forwards;z-index:12;}
+.arena-vs{font-family:Cinzel,serif;font-size:17px;color:#c84040;animation:flicker 1.5s infinite;align-self:center;}
+.arena-row{display:flex;justify-content:space-around;align-items:flex-end;position:relative;z-index:2;}
+.comp-row{display:flex;gap:7px;position:relative;z-index:2;margin-top:5px;padding-left:3px;flex-wrap:wrap;}
+.comp-sprite{font-size:24px;animation:compFloat 2s ease-in-out infinite;}
+.comp-sprite.comp-atk{animation:atkRight .5s ease-out;}
+.cname{font-family:Cinzel,serif;font-size:8px;color:#c8960c;text-align:center;}
+.saved-hero{display:flex;gap:10px;align-items:center;padding:11px;cursor:pointer;border:2px solid #3a2a10;border-radius:8px;background:linear-gradient(145deg,#1a1208,#231a0a);margin-bottom:6px;touch-action:manipulation;}
+.saved-hero:active{transform:scale(.98);}
+.saved-hero.active-h{border-color:#c8960c;box-shadow:0 0 9px #c8960c44;}
+</style>
+</head>
+<body>
+
+<!-- TÍTULO -->
+<div id="s-title" class="screen active" style="justify-content:center;align-items:center;position:relative;background:radial-gradient(ellipse at center,#1a1005 0%,#0a0703 100%);min-height:100vh;">
+  <div class="dot-bg"></div>
+  <span class="emoji-big">⚔️</span>
+  <h1 class="title center mt8" style="font-size:clamp(22px,8vw,44px);letter-spacing:4px;animation:glow 3s ease-in-out infinite;">REINOS DE SOMBRA</h1>
+  <p style="font-family:Crimson Text,serif;color:#8b7040;font-style:italic;font-size:13px;letter-spacing:2px;text-align:center;margin-top:6px;">Un mundo de espadas, magia y gloria</p>
+  <div id="title-heroes" style="width:100%;max-width:400px;margin-top:18px;"></div>
+  <button class="btn mt8" style="max-width:270px;" onclick="go('s-create-name');resetCreation()">✦ NUEVO PERSONAJE ✦</button>
+  <button class="btn dim-btn" style="max-width:270px;" onclick="document.getElementById('cred').style.display=document.getElementById('cred').style.display==='none'?'block':'none'">📜 Créditos</button>
+  <div id="cred" style="display:none;margin-top:8px;"><p class="dim" style="font-size:11px;text-align:center;">Reinos de Sombra v3.0 — RPG medieval</p></div>
+</div>
+<div id="s-create-name" class="screen">
+  <p class="title" style="font-size:17px;margin-bottom:3px;">✦ Creación — Paso 1/4</p>
+  <div class="card" style="border-color:#8b6914;">
+    <p class="title mb8" style="font-size:13px;">¿Cómo te llamarás?</p>
+    <input id="inp-name" class="rpg" placeholder="Ingresa tu nombre..." maxlength="20"/>
+    <button class="btn" onclick="saveName()">Continuar →</button>
+    <button class="btn dim-btn" onclick="go('s-title');renderTitleScreen()">← Volver</button>
+  </div>
+</div>
+<div id="s-create-class" class="screen">
+  <p class="title" style="font-size:17px;margin-bottom:3px;">✦ Creación — Paso 2/4 — Clase</p>
+  <div id="class-list"></div>
+  <div class="btn-row"><button class="btn dim-btn" onclick="go('s-create-name')" style="flex:.35">← Atrás</button><button class="btn" onclick="goToStats()" style="flex:.65">Continuar →</button></div>
+</div>
+<div id="s-create-stats" class="screen">
+  <p class="title" style="font-size:17px;margin-bottom:3px;">✦ Creación — Paso 3/4</p>
+  <p class="dim center" style="font-size:10px;margin-bottom:8px;">3 puntos base en cada atributo + 5 para personalizar</p>
+  <div class="card" style="border-color:#8b6914;">
+    <div class="row mb8" style="justify-content:space-between"><p class="title" style="font-size:12px;">Estadísticas</p><span id="free-pts" class="green" style="font-family:Cinzel,serif;font-size:11px;"></span></div>
+    <div id="stat-sliders"></div>
+    <div id="stat-hint-box" class="sbox mt8"></div>
+  </div>
+  <div class="btn-row"><button class="btn dim-btn" onclick="go('s-create-class')" style="flex:.35">← Atrás</button><button class="btn" onclick="go('s-create-talents')" style="flex:.65">Continuar →</button></div>
+</div>
+<div id="s-create-talents" class="screen">
+  <p class="title" style="font-size:17px;margin-bottom:3px;">✦ Creación — Paso 4/4</p>
+  <p class="dim center" style="font-size:10px;margin-bottom:3px;">Elegí 1 talento inicial — desbloquea la cadena</p>
+  <p class="dim center" style="font-size:9px;margin-bottom:9px;">Los talentos ⭐ requieren nivel 9 y al menos 2 de la misma rama</p>
+  <div id="talent-tree-create"></div>
+  <p id="talent-count-lbl" class="dim center" style="font-size:10px;margin-bottom:6px;"></p>
+  <div class="btn-row"><button class="btn dim-btn" onclick="go('s-create-stats')" style="flex:.35">← Atrás</button><button class="btn" onclick="createHero()" style="flex:.65">⚔️ Comenzar Aventura</button></div>
+</div>
+<div id="s-hub" class="screen">
+  <div id="hub-header" class="card" style="border-color:#8b6914;margin-bottom:8px;"></div>
+  <p class="title center" style="font-size:10px;letter-spacing:2px;margin-bottom:8px;">— ¿Qué harás, aventurero? —</p>
+  <div class="card" style="cursor:pointer;border-color:#c0392b44;" onclick="go('s-select');pvpMode=false;renderSelect()"><div class="row"><span style="font-size:26px;">⚔️</span><div><p class="title" style="color:#e8624c;font-size:12px;">Combatir Enemigo</p><p class="dim" style="font-size:10px;">Pelea contra monstruos y sube de nivel</p></div></div></div>
+  <div class="card" style="cursor:pointer;border-color:#8e44ad44;" onclick="go('s-select');pvpMode=true;renderSelect()"><div class="row"><span style="font-size:26px;">🏆</span><div><p class="title" style="color:#b86cd8;font-size:12px;">Arena PvP</p><p class="dim" style="font-size:10px;">Desafía a otros héroes</p></div></div></div>
+  <div class="card" style="cursor:pointer;border-color:#f0c03044;" onclick="go('s-market');renderMarket()"><div class="row"><span style="font-size:26px;">🏪</span><div><p class="title" style="color:#f0c030;font-size:12px;">Mercado</p><p class="dim" style="font-size:10px;">Compra equipamiento con tu oro</p></div></div></div>
+  <div class="card" style="cursor:pointer;border-color:#c8960c33;" onclick="csTabGo('stats')"><div class="row"><span style="font-size:26px;">📜</span><div><p class="title" style="font-size:12px;">Hoja de Personaje</p><p class="dim" style="font-size:10px;">Stats, equipamiento y talentos</p></div></div></div>
+  <div class="card" style="cursor:pointer;border-color:#8a150844;" onclick="goToTitle()"><div class="row"><span style="font-size:26px;">🚪</span><div><p class="title" style="color:#ff6644;font-size:12px;">Guardar y Salir</p><p class="dim" style="font-size:10px;">Tu progreso se guarda automáticamente</p></div></div></div>
+  <div id="hub-talents" class="mt8"></div>
+</div>
+<div id="s-select" class="screen">
+  <div class="row mb8"><button class="btn dim-btn sm" onclick="go('s-hub')" style="width:auto">← Volver</button><p id="select-title" class="title" style="font-size:15px;margin-left:7px;"></p></div>
+  <div id="enemy-list"></div>
+</div>
+<div id="s-battle" class="screen">
+  <div class="battle-arena" id="battle-arena">
+    <div class="arena-bg-grid"></div>
+    <div class="arena-row" id="arena-row"></div>
+    <div class="comp-row" id="comp-row"></div>
+    <div class="fx-layer" id="fx-layer"></div>
+  </div>
+  <div id="b-log" class="card log-box mb8"></div>
+  <div id="b-actions"></div>
+</div>
+<div id="s-result" class="screen" style="justify-content:center;align-items:center;">
+  <span id="res-icon" class="emoji-big"></span>
+  <p id="res-title" class="title center mt8" style="font-size:22px;animation:glow 3s infinite;"></p>
+  <div id="res-rewards" class="card mt16 center" style="width:100%;max-width:290px;border-color:#8b6914;"></div>
+  <div id="res-btns" class="mt12" style="width:100%;max-width:290px;"></div>
+</div>
+<div id="s-levelup" class="screen" style="align-items:center;">
+  <span class="emoji-big">⬆️</span>
+  <p id="lu-title" class="title center mt8" style="font-size:22px;animation:glow 2s infinite;"></p>
+  <div class="card mt12" style="width:100%;max-width:350px;border-color:#8b6914;">
+    <p class="title mb8" style="font-size:12px;">Beneficios:</p>
+    <p class="green" style="font-size:11px;font-family:Crimson Text,serif;margin-bottom:3px;">✦ +3 puntos de estadística</p>
+    <p class="label" style="font-size:11px;font-family:Crimson Text,serif;">✦ +1 punto de talento disponible · HP y recursos aumentados</p>
+  </div>
+  <div id="lu-tree" style="width:100%;max-width:410px;margin-top:10px;"></div>
+  <button class="btn mt12" style="max-width:250px;" onclick="confirmLevelUp()">¡Confirmar!</button>
+</div>
+<div id="s-charsheet" class="screen">
+  <div class="row mb8"><button class="btn dim-btn sm" onclick="go('s-hub')" style="width:auto">← Volver</button><p id="cs-name" class="title" style="font-size:15px;margin-left:7px;"></p></div>
+  <div class="tabs">
+    <div class="tab active" id="tab-stats" onclick="csTabGo('stats')">Stats</div>
+    <div class="tab" id="tab-equip" onclick="csTabGo('equip')">Equipo</div>
+    <div class="tab" id="tab-talents" onclick="csTabGo('talents')">Talentos</div>
+  </div>
+  <div id="cs-content"></div>
+</div>
+<div id="s-market" class="screen">
+  <div class="row mb8"><button class="btn dim-btn sm" onclick="go('s-hub')" style="width:auto">← Volver</button><p class="title" style="font-size:15px;margin-left:7px;">🏪 Mercado</p><span id="market-gold" class="gold" style="margin-left:auto;font-size:12px;"></span></div>
+  <div class="tabs">
+    <div class="tab active" id="mtab-weapons" onclick="mTab('weapons')">Armas</div>
+    <div class="tab" id="mtab-armor" onclick="mTab('armor')">Armadura</div>
+    <div class="tab" id="mtab-acc" onclick="mTab('acc')">Accesorios</div>
+  </div>
+  <div id="market-list"></div>
+</div>
+<script>
+
+// ════ FORMULAS
+// STR: +1 atk físico, +1 HP
+// AGI: +0.5 atk físico, +1% esquivar, +0.5 def física  
+// VIT: +5 HP, +1 def física, +1 def mágica
+// INT: +1 atk mágico, +3 maná
+// SPI: +3 HP, +5 maná, +0.5 def mágica
+const STAT_LABELS={str:"Fuerza",agi:"Agilidad",int:"Inteligencia",vit:"Vitalidad",spi:"Espíritu"};
+const STAT_DESC={
+  str:"FUE → +1 Daño Físico, +1 HP",
+  agi:"AGI → +0.5 Daño Físico, +1% Esquivar, +0.5 Def.Física",
+  int:"INT → +1 Daño Mágico, +3 Maná Máx",
+  vit:"VIT → +5 HP Máx, +1 Def.Física, +1 Def.Mágica",
+  spi:"SPI → +3 HP Máx, +5 Maná Máx, +0.5 Def.Mágica"
+};
+// XP acumulada por nivel: 0→10→30→60→100→150→210→280→360→450→550
+const XP_TABLE=[0,10,30,60,100,150,210,280,360,450,550];
+function xpForLevel(lvl){return XP_TABLE[Math.min(lvl,10)]||550;}
+// Sprites de batalla humanoides por clase
+const CLS_SPRITE={warrior:"🧑‍⚔️",mage:"🧙",rogue:"🥷",paladin:"🛡️",cleric:"⛪",hunter:"🏹",monk:"🥋",barbarian:"🪨"};
+// FX por tipo de ataque → {proj, exp, color}
+const FX={
+  physical:{proj:"⚔️",exp:"💥",col:"#ff8866"},
+  fire:    {proj:"🔥",exp:"💥",col:"#ff4400"},
+  ice:     {proj:"❄️",exp:"💫",col:"#88eeff"},
+  lightning:{proj:"⚡",exp:"✨",col:"#ffee00"},
+  arcane:  {proj:"🟣",exp:"🌟",col:"#cc88ff"},
+  holy:    {proj:"✨",exp:"🌟",col:"#ffee88"},
+  arrow:   {proj:"🏹",exp:"💥",col:"#88cc44"},
+  axe:     {proj:"🪓",exp:"💥",col:"#cc8844"},
+  shadow:  {proj:"🌑",exp:"💨",col:"#888888"},
+  beast:   {proj:"🐾",exp:"💥",col:"#88cc44"},
+  heal:    {proj:null,exp:"💚",col:"#44ff88"},
+  shield:  {proj:null,exp:"🔰",col:"#4488ff"},
+  buff:    {proj:null,exp:"⬆️",col:"#ffcc44"},
+};
+const CLASSES=[
+ {id:"warrior",name:"Guerrero",icon:"⚔️",sprite:"🧑‍⚔️",color:"#e8624c",resource:"energy",
+  desc:"Maestro del combate. Alta defensa y fuerza brutal.",
+  stats:{str:3,agi:3,int:3,vit:3,spi:3},resMax:100,
+  trees:[
+   {id:"arms",name:"Armas",icon:"⚔️",desc:"Dominio de la espada.",talents:[
+    {id:"heavy_blow",name:"Golpe Pesado",tier:1,req:null,cost:{energy:20},desc:"Golpe devastador: 150% daño físico.",effect:"dmg",mult:1.5,fx:"physical"},
+    {id:"whirlwind",name:"Torbellino",tier:2,req:"heavy_blow",cost:{energy:35},desc:"Giras atacando: 130% daño físico.",effect:"dmg",mult:1.3,fx:"physical"},
+    {id:"battle_cry",name:"Grito de Guerra",tier:2,req:"heavy_blow",cost:{energy:25},desc:"+30% daño por 3 turnos.",effect:"buff",stat:"dmg",val:0.3,turns:3,fx:"buff"},
+    {id:"steel_storm",name:"Tormenta de Acero",tier:3,req:"whirlwind",cost:{energy:40},desc:"4 ataques de 70% cada uno.",effect:"multi_hit",count:4,mult:0.7,fx:"physical"},
+    {id:"execute",name:"Ejecutar",tier:4,req:"battle_cry",minTree:2,cost:{energy:50},desc:"⭐ Si enemigo <25% HP: 300% daño. Req: 2 talentos en rama + Nv.9",effect:"execute",fx:"physical"},
+   ]},
+   {id:"defense",name:"Escudo",icon:"🛡️",desc:"El arte del escudo y la protección.",talents:[
+    {id:"shield_strike",name:"Golpe con Escudo",tier:1,req:null,cost:{energy:20},desc:"Golpeás con el escudo: 120% daño físico.",effect:"dmg",mult:1.2,fx:"physical"},
+    {id:"shield_mastery",name:"Maestría en Escudo",tier:2,req:"shield_strike",cost:{energy:0},desc:"PASIVO: +3 Defensa y +3 Def.Mágica permanentes.",effect:"passive_def",passiveVal:3,fx:"shield"},
+    {id:"def_stance",name:"Posición Defensiva",tier:2,req:"shield_strike",cost:{energy:30},desc:"+6 DEF y +6 DefMág por 2 turnos, PERO salteas tu siguiente turno.",effect:"def_stance",val:6,turns:2,fx:"shield"},
+    {id:"iron_fortress",name:"Fortaleza de Hierro",tier:3,req:"shield_mastery",cost:{energy:35},desc:"Escudo enorme de 60 puntos.",effect:"shield",val:60,fx:"shield"},
+    {id:"last_stand",name:"Último Bastión",tier:4,req:"def_stance",minTree:2,cost:{energy:40},desc:"⭐ Si HP<20%: +70% daño por 3 turnos. Req: 2 talentos + Nv.9",effect:"last_stand",fx:"buff"},
+   ]},
+   {id:"rage",name:"Furia",icon:"💢",desc:"Canaliza tu ira destructora.",talents:[
+    {id:"berserker",name:"Berserker",tier:1,req:null,cost:{energy:40},desc:"+50% daño 3 turnos, -10% HP propio.",effect:"berserk",fx:"buff"},
+    {id:"bloodlust",name:"Sed de Sangre",tier:2,req:"berserker",cost:{energy:30},desc:"Cada golpe roba 20% daño como HP.",effect:"lifesteal",val:0.2,fx:"physical"},
+    {id:"war_shout",name:"Aullido de Guerra",tier:2,req:"berserker",cost:{energy:30},desc:"Reduce daño enemigo 30% por 2 turnos.",effect:"debuff_dmg",val:0.3,turns:2,fx:"buff"},
+    {id:"headcrush",name:"Aplastacráneos",tier:3,req:"bloodlust",cost:{energy:45},desc:"Golpe masivo: 230% daño físico.",effect:"dmg",mult:2.3,fx:"physical"},
+    {id:"annihilate",name:"Aniquilar",tier:4,req:"war_shout",minTree:2,cost:{energy:60},desc:"⭐ Destrucción total: 280% daño. Req: 2 talentos + Nv.9",effect:"dmg",mult:2.8,fx:"physical"},
+   ]},
+  ]},
+ {id:"mage",name:"Mago",icon:"🔮",sprite:"🧙",color:"#b86cd8",resource:"mana",
+  desc:"Hechicero arcano. Destruye con magia pero es frágil.",
+  stats:{str:3,agi:3,int:3,vit:3,spi:3},resMax:120,
+  trees:[
+   {id:"fire",name:"Fuego",icon:"🔥",desc:"Magia destructiva de fuego.",talents:[
+    {id:"fireball",name:"Bola de Fuego",tier:1,req:null,cost:{mana:25},desc:"Esfera de fuego roja: 200% daño mágico.",effect:"mdmg",mult:2.0,fx:"fire"},
+    {id:"scorch",name:"Abrasar",tier:2,req:"fireball",cost:{mana:20},desc:"Quema: 15 daño/turno por 3 turnos.",effect:"dot",val:15,turns:3,fx:"fire"},
+    {id:"flame_nova",name:"Nova de Llamas",tier:2,req:"fireball",cost:{mana:35},desc:"Explosión ígnea: 160% daño mágico.",effect:"mdmg",mult:1.6,fx:"fire"},
+    {id:"meteor",name:"Meteoro",tier:3,req:"scorch",cost:{mana:50},desc:"Meteoro devastador: 250% daño mágico.",effect:"mdmg",mult:2.5,fx:"fire"},
+    {id:"phoenix_flame",name:"Llama Fénix",tier:4,req:"flame_nova",minTree:2,cost:{mana:55},desc:"⭐ 300% daño mágico + cura 30% HP. Req: 2 talentos + Nv.9",effect:"mdmg_heal",mult:3.0,healPct:0.3,fx:"fire"},
+   ]},
+   {id:"ice",name:"Hielo",icon:"❄️",desc:"Congela a tus enemigos.",talents:[
+    {id:"frostbolt",name:"Rayo Helado",tier:1,req:null,cost:{mana:20},desc:"Rayo de hielo azul: 140% daño mágico.",effect:"mdmg",mult:1.4,fx:"ice"},
+    {id:"freeze",name:"Congelar",tier:2,req:"frostbolt",cost:{mana:35},desc:"Congela al enemigo, salta su turno.",effect:"stun",fx:"ice"},
+    {id:"blizzard",name:"Ventisca",tier:2,req:"frostbolt",cost:{mana:40},desc:"Tormenta de hielo: 160% daño mágico.",effect:"mdmg",mult:1.6,fx:"ice"},
+    {id:"ice_lance",name:"Lanza de Hielo",tier:3,req:"freeze",cost:{mana:30},desc:"Lanza cristalina: 180% daño mágico.",effect:"mdmg",mult:1.8,fx:"ice"},
+    {id:"glacial_spike",name:"Pico Glacial",tier:4,req:"blizzard",minTree:2,cost:{mana:55},desc:"⭐ 250% daño + aturde 2 turnos. Req: 2 talentos + Nv.9",effect:"mdmg_stun",mult:2.5,fx:"ice"},
+   ]},
+   {id:"arcane",name:"Arcano",icon:"✨",desc:"Magia pura de la realidad.",talents:[
+    {id:"arcane_bolt",name:"Rayo Arcano",tier:1,req:null,cost:{mana:15},desc:"Energía arcana púrpura: 120% daño mágico.",effect:"mdmg",mult:1.2,fx:"arcane"},
+    {id:"mana_shield",name:"Escudo de Maná",tier:2,req:"arcane_bolt",cost:{mana:30},desc:"Tu maná absorbe el próximo ataque.",effect:"mana_shield",fx:"shield"},
+    {id:"arcane_surge",name:"Oleada Arcana",tier:2,req:"arcane_bolt",cost:{mana:45},desc:"Estallido arcano: 300% daño mágico.",effect:"mdmg",mult:3.0,fx:"arcane"},
+    {id:"time_warp",name:"Distorsión Temporal",tier:3,req:"mana_shield",cost:{mana:40},desc:"Atacás dos veces este turno.",effect:"double_magic",mult:1.0,fx:"arcane"},
+    {id:"singularity",name:"Singularidad",tier:4,req:"arcane_surge",minTree:2,cost:{mana:65},desc:"⭐ Colapso arcano: 400% daño. Req: 2 talentos + Nv.9",effect:"mdmg",mult:4.0,fx:"arcane"},
+   ]},
+  ]},
+ {id:"rogue",name:"Pícaro",icon:"🗡️",sprite:"🥷",color:"#40c8a0",resource:"energy",
+  desc:"Veloz y letal. Golpes críticos y evasión superior.",
+  stats:{str:3,agi:3,int:3,vit:3,spi:3},resMax:100,
+  trees:[
+   {id:"assassination",name:"Asesinato",icon:"🎯",desc:"El arte de matar.",talents:[
+    {id:"backstab",name:"Apuñalar",tier:1,req:null,cost:{energy:25},desc:"Ataque por sorpresa desde las sombras: 180% daño.",effect:"dmg",mult:1.8,fx:"shadow"},
+    {id:"eviscerate",name:"Eviscerar",tier:2,req:"backstab",cost:{energy:40},desc:"200% daño + sangrado 10/turno 3t.",effect:"dmg_dot",mult:2.0,dot:10,fx:"shadow"},
+    {id:"shadowstep",name:"Paso Sombrío",tier:2,req:"backstab",cost:{energy:30},desc:"Teletransportás y golpeás 2 veces 90%.",effect:"double_hit",mult:0.9,fx:"shadow"},
+    {id:"rupture",name:"Ruptura",tier:3,req:"eviscerate",cost:{energy:45},desc:"Corte profundo: 220% daño físico.",effect:"dmg",mult:2.2,fx:"physical"},
+    {id:"death_blow",name:"Golpe Letal",tier:4,req:"shadowstep",minTree:2,cost:{energy:55},desc:"⭐ 300% daño. Si mata: +50 energía. Req: 2 talentos + Nv.9",effect:"death_blow",mult:3.0,fx:"shadow"},
+   ]},
+   {id:"subtlety",name:"Sigilo",icon:"🌑",desc:"Moverse en las sombras.",talents:[
+    {id:"vanish",name:"Desvanecerse",tier:1,req:null,cost:{energy:35},desc:"Esquivás el próximo ataque.",effect:"dodge",fx:"shadow"},
+    {id:"poison",name:"Veneno",tier:2,req:"vanish",cost:{energy:20},desc:"12 daño/turno por 4 turnos.",effect:"dot",val:12,turns:4,fx:"shadow"},
+    {id:"smoke_bomb",name:"Bomba de Humo",tier:2,req:"vanish",cost:{energy:30},desc:"Precisión enemiga -40% por 3 turnos.",effect:"debuff",fx:"shadow"},
+    {id:"garrote",name:"Estrangular",tier:3,req:"poison",cost:{energy:40},desc:"90% daño + aturde 1 turno.",effect:"stun_dmg",mult:0.9,fx:"shadow"},
+    {id:"shadowdance",name:"Danza Sombría",tier:4,req:"smoke_bomb",minTree:2,cost:{energy:60},desc:"⭐ 5 golpes de 90% en las sombras. Req: 2 talentos + Nv.9",effect:"multi_hit",count:5,mult:0.9,fx:"shadow"},
+   ]},
+   {id:"outlaw",name:"Forajido",icon:"⚓",desc:"Técnicas sin honor.",talents:[
+    {id:"dirty_trick",name:"Truco Sucio",tier:1,req:null,cost:{energy:15},desc:"Enemigo falla su próximo ataque.",effect:"blind",fx:"shadow"},
+    {id:"combo",name:"Combo",tier:2,req:"dirty_trick",cost:{energy:35},desc:"3 golpes de 70% cada uno.",effect:"triple_hit",mult:0.7,fx:"physical"},
+    {id:"adrenaline",name:"Adrenalina",tier:2,req:"dirty_trick",cost:{energy:20},desc:"+30 energía, +evasión 2 turnos.",effect:"regen_energy",val:30,fx:"buff"},
+    {id:"blade_storm",name:"Tormenta de Hojas",tier:3,req:"combo",cost:{energy:50},desc:"5 golpes de 60% cada uno.",effect:"multi_hit",count:5,mult:0.6,fx:"physical"},
+    {id:"killing_spree",name:"Matanza",tier:4,req:"adrenaline",minTree:2,cost:{energy:60},desc:"⭐ 3 golpes de 130% cada uno. Req: 2 talentos + Nv.9",effect:"triple_hit",mult:1.3,fx:"shadow"},
+   ]},
+  ]},
+ {id:"paladin",name:"Paladín",icon:"🛡️",sprite:"🛡️",color:"#d4ac0d",resource:"mana",
+  desc:"Guerrero sagrado. Espada divina y curación poderosa.",
+  stats:{str:3,agi:3,int:3,vit:3,spi:3},resMax:90,
+  trees:[
+   {id:"holy",name:"Sagrado",icon:"✝️",desc:"Curar y proteger.",talents:[
+    {id:"holy_light",name:"Luz Sagrada",tier:1,req:null,cost:{mana:25},desc:"Luz amarilla sanadora: 150% curación espiritual.",effect:"heal",mult:1.5,fx:"heal"},
+    {id:"divine_shield",name:"Escudo Divino",tier:2,req:"holy_light",cost:{mana:35},desc:"Inmune al daño por 1 turno.",effect:"immune",fx:"shield"},
+    {id:"lay_hands",name:"Imponer Manos",tier:2,req:"holy_light",cost:{mana:40},desc:"Curación masiva: 200% espíritu.",effect:"heal",mult:2.0,fx:"heal"},
+    {id:"holy_regen",name:"Regeneración",tier:3,req:"divine_shield",cost:{mana:30},desc:"15 HP/turno por 4 turnos.",effect:"hot",val:15,turns:4,fx:"heal"},
+    {id:"divine_miracle",name:"Milagro Divino",tier:4,req:"lay_hands",minTree:2,cost:{mana:65},desc:"⭐ Cura 400% espíritu + resurrección automática. Req: 2 talentos + Nv.9",effect:"heal_revive",mult:4.0,fx:"heal"},
+   ]},
+   {id:"retribution",name:"Retribución",icon:"⚡",desc:"La justicia divina.",talents:[
+    {id:"hammer",name:"Martillo Sagrado",tier:1,req:null,cost:{mana:20},desc:"Luz dorada como rayo: 160% daño mágico.",effect:"mdmg",mult:1.6,fx:"holy"},
+    {id:"avenging",name:"Ira Divina",tier:2,req:"hammer",cost:{mana:40},desc:"Rayo divino amarillo: 220% daño mágico.",effect:"mdmg",mult:2.2,fx:"lightning"},
+    {id:"holy_wrath",name:"Furia Santa",tier:2,req:"hammer",cost:{mana:30},desc:"180% daño + curas la mitad.",effect:"dmg_heal",mult:1.8,fx:"holy"},
+    {id:"crusader",name:"Golpe Cruzado",tier:3,req:"avenging",cost:{mana:45},desc:"Luz sagrada masiva: 260% daño mágico.",effect:"mdmg",mult:2.6,fx:"holy"},
+    {id:"divine_wrath",name:"Ira Suprema",tier:4,req:"holy_wrath",minTree:2,cost:{mana:65},desc:"⭐ 350% daño sagrado. Req: 2 talentos + Nv.9",effect:"mdmg",mult:3.5,fx:"lightning"},
+   ]},
+   {id:"protection_p",name:"Protección",icon:"🔰",desc:"Volverse irrompible.",talents:[
+    {id:"sacred_aura",name:"Aura Sagrada",tier:1,req:null,cost:{mana:20},desc:"Reduce daño recibido 25% por 3 turnos.",effect:"buff",stat:"def",val:0.25,turns:3,fx:"shield"},
+    {id:"blessing",name:"Bendición",tier:2,req:"sacred_aura",cost:{mana:25},desc:"+15% a todos los stats por 2 turnos.",effect:"full_buff",val:0.15,turns:2,fx:"buff"},
+    {id:"consecrate",name:"Consagrar",tier:2,req:"sacred_aura",cost:{mana:30},desc:"18 daño/turno al enemigo por 3 turnos.",effect:"dot",val:18,turns:3,fx:"holy"},
+    {id:"fortitude",name:"Fortaleza",tier:3,req:"blessing",cost:{mana:35},desc:"Escudo enorme de 60 puntos.",effect:"shield",val:60,fx:"shield"},
+    {id:"divine_bulwark",name:"Baluarte Divino",tier:4,req:"consecrate",minTree:2,cost:{mana:60},desc:"⭐ Inmune 2 turnos + 80 escudo. Req: 2 talentos + Nv.9",effect:"immune_shield",turns:2,val:80,fx:"shield"},
+   ]},
+  ]},
+ {id:"cleric",name:"Clérigo",icon:"✝️",sprite:"⛪",color:"#e8e0b0",resource:"mana",
+  desc:"Sacerdote guerrero. Maestro de curación y magia sagrada.",
+  stats:{str:3,agi:3,int:3,vit:3,spi:3},resMax:110,
+  trees:[
+   {id:"healing",name:"Curación",icon:"💚",desc:"Restaurar la vida.",talents:[
+    {id:"heal_spell",name:"Curar",tier:1,req:null,cost:{mana:20},desc:"Luz verde sanadora: 180% espíritu en HP.",effect:"heal",mult:1.8,fx:"heal"},
+    {id:"regen_spell",name:"Regenerar",tier:2,req:"heal_spell",cost:{mana:30},desc:"15 HP/turno por 4 turnos.",effect:"hot",val:15,turns:4,fx:"heal"},
+    {id:"mass_heal",name:"Curación Mayor",tier:2,req:"heal_spell",cost:{mana:40},desc:"Curación masiva: 250% espíritu.",effect:"heal",mult:2.5,fx:"heal"},
+    {id:"resurrection",name:"Resurrección",tier:3,req:"regen_spell",cost:{mana:60},desc:"Una vez: si caés, volvés con 30% HP.",effect:"revive",fx:"heal"},
+    {id:"divine_heal",name:"Curación Divina",tier:4,req:"mass_heal",minTree:2,cost:{mana:70},desc:"⭐ 400% espíritu en HP + regen 5t. Req: 2 talentos + Nv.9",effect:"heal_hot",mult:4.0,hot:{val:15,turns:5},fx:"heal"},
+   ]},
+   {id:"smite",name:"Golpe Sagrado",icon:"☀️",desc:"Atacar con poder divino.",talents:[
+    {id:"smite_spell",name:"Golpe Sagrado",tier:1,req:null,cost:{mana:25},desc:"Energía sagrada blanca: 150% daño mágico.",effect:"mdmg",mult:1.5,fx:"holy"},
+    {id:"holy_fire",name:"Fuego Sagrado",tier:2,req:"smite_spell",cost:{mana:35},desc:"Llamas sagradas: 14 daño/turno por 5 turnos.",effect:"dot",val:14,turns:5,fx:"holy"},
+    {id:"divine_storm",name:"Tormenta Divina",tier:2,req:"smite_spell",cost:{mana:50},desc:"Tormenta de luz sagrada: 200% daño mágico.",effect:"mdmg",mult:2.0,fx:"holy"},
+    {id:"wrath",name:"Ira Sagrada",tier:3,req:"holy_fire",cost:{mana:45},desc:"Rayo de ira divina: 220% daño mágico.",effect:"mdmg",mult:2.2,fx:"lightning"},
+    {id:"smite_chain",name:"Golpe en Cadena",tier:4,req:"divine_storm",minTree:2,cost:{mana:60},desc:"⭐ 4 golpes sagrados de 100% c/u. Req: 2 talentos + Nv.9",effect:"multi_mdmg",count:4,mult:1.0,fx:"holy"},
+   ]},
+   {id:"protection_c",name:"Protección",icon:"🔰",desc:"Escudos y barreras.",talents:[
+    {id:"barrier",name:"Barrera",tier:1,req:null,cost:{mana:25},desc:"Barrera mágica que absorbe 40 daño.",effect:"shield",val:40,fx:"shield"},
+    {id:"holy_shield2",name:"Escudo Santo",tier:2,req:"barrier",cost:{mana:20},desc:"Reduce daño recibido 30% por 2 turnos.",effect:"buff",stat:"def",val:0.3,turns:2,fx:"shield"},
+    {id:"sanctuary_c",name:"Santuario",tier:2,req:"barrier",cost:{mana:40},desc:"+20 HP y -20 daño al enemigo.",effect:"aoe_heal_dmg",val:20,fx:"heal"},
+    {id:"aegis",name:"Égida Divina",tier:3,req:"holy_shield2",cost:{mana:45},desc:"Escudo 70 + reduce daño 20%.",effect:"big_shield",val:70,def:0.2,fx:"shield"},
+    {id:"divine_aegis",name:"Égida Suprema",tier:4,req:"sanctuary_c",minTree:2,cost:{mana:65},desc:"⭐ Inmune 1t + 100 escudo + 50HP. Req: 2 talentos + Nv.9",effect:"super_shield",fx:"shield"},
+   ]},
+  ]},
+ {id:"hunter",name:"Cazador",icon:"🏹",sprite:"🏹",color:"#78c840",resource:"energy",
+  desc:"Maestro del arco y los animales salvajes.",
+  stats:{str:3,agi:3,int:3,vit:3,spi:3},resMax:100,
+  trees:[
+   {id:"beast",name:"Bestias",icon:"🐺",desc:"Animales compañeros que luchan contigo.",talents:[
+    {id:"wolf_companion",name:"Compañero Lobo",tier:1,req:null,cost:{energy:30},desc:"Invocas un lobo (HP:40, Atk:18) que lucha a tu lado.",effect:"summon_companion",companion:{type:"wolf",sprite:"🐺",name:"Lobo",hp:40,atk:18},fx:"beast"},
+    {id:"wolf_pack",name:"Manada de Lobos",tier:2,req:"wolf_companion",cost:{energy:35},desc:"Tu lobo y aliados atacan juntos: 130% daño.",effect:"companion_atk",mult:1.3,fx:"beast"},
+    {id:"bear_trap",name:"Trampa de Oso",tier:2,req:"wolf_companion",cost:{energy:25},desc:"Trampa: inmoviliza + 80% daño físico.",effect:"stun_dmg",mult:0.8,fx:"physical"},
+    {id:"eagle_eye",name:"Ojo de Águila",tier:3,req:"wolf_pack",cost:{energy:40},desc:"Ataque conjunto con tu lobo: 180% daño.",effect:"companion_joint_atk",mult:1.8,fx:"beast"},
+    {id:"alpha",name:"Alfa de la Manada",tier:4,req:"bear_trap",minTree:2,cost:{energy:55},desc:"⭐ Tu lobo en furia: 5 ataques de 100%. Req: 2 talentos + Nv.9",effect:"companion_triple",count:5,fx:"beast"},
+   ]},
+   {id:"archery",name:"Arco",icon:"🏹",desc:"Técnicas de arquería de precisión.",talents:[
+    {id:"aimed_shot",name:"Disparo Certero",tier:1,req:null,cost:{energy:30},desc:"Flecha precisa: 200% daño físico.",effect:"dmg",mult:2.0,fx:"arrow"},
+    {id:"multi_shot",name:"Multi Flecha",tier:2,req:"aimed_shot",cost:{energy:35},desc:"3 flechas de 80% cada una.",effect:"triple_hit",mult:0.8,fx:"arrow"},
+    {id:"explosive",name:"Flecha Explosiva",tier:2,req:"aimed_shot",cost:{energy:40},desc:"Flecha que explota en fuego: 180% daño.",effect:"dmg",mult:1.8,fx:"fire"},
+    {id:"snipe",name:"Francotirador",tier:3,req:"multi_shot",cost:{energy:50},desc:"Disparo de largo alcance: 250% daño.",effect:"dmg",mult:2.5,fx:"arrow"},
+    {id:"arrow_rain",name:"Lluvia de Flechas",tier:4,req:"explosive",minTree:2,cost:{energy:60},desc:"⭐ 7 flechas de 70% c/u. Req: 2 talentos + Nv.9",effect:"multi_hit",count:7,mult:0.7,fx:"arrow"},
+   ]},
+   {id:"blades",name:"Espadas",icon:"🗡️",desc:"Cuchillas cuerpo a cuerpo.",talents:[
+    {id:"raptor_strike",name:"Golpe Raptor",tier:1,req:null,cost:{energy:20},desc:"Corte veloz: 140% daño físico.",effect:"dmg",mult:1.4,fx:"physical"},
+    {id:"wing_clip",name:"Corte de Ala",tier:2,req:"raptor_strike",cost:{energy:25},desc:"Golpe + reduce daño enemigo 30%.",effect:"debuff_dmg",val:0.3,turns:2,fx:"physical"},
+    {id:"mongoose",name:"Golpe Mangosta",tier:2,req:"raptor_strike",cost:{energy:30},desc:"Dos ataques rápidos de 90% cada uno.",effect:"double_hit",mult:0.9,fx:"physical"},
+    {id:"blade_fury",name:"Furia de Cuchillas",tier:3,req:"wing_clip",cost:{energy:45},desc:"4 cortes de 80% cada uno.",effect:"multi_hit",count:4,mult:0.8,fx:"physical"},
+    {id:"killing_blow",name:"Golpe Letal",tier:4,req:"mongoose",minTree:2,cost:{energy:60},desc:"⭐ 280% daño definitivo. Req: 2 talentos + Nv.9",effect:"dmg",mult:2.8,fx:"physical"},
+   ]},
+  ]},
+ {id:"monk",name:"Monje",icon:"🥋",sprite:"🥋",color:"#40a8d8",resource:"energy",
+  desc:"Maestro de artes marciales. Velocidad y poder sin armas.",
+  stats:{str:3,agi:3,int:3,vit:3,spi:3},resMax:100,
+  trees:[
+   {id:"fist",name:"Puños",icon:"👊",desc:"Combate sin armas.",talents:[
+    {id:"tiger_palm",name:"Palma de Tigre",tier:1,req:null,cost:{energy:20},desc:"Golpe de palma: 130% daño físico.",effect:"dmg",mult:1.3,fx:"physical"},
+    {id:"blackout",name:"Golpe Nocturno",tier:2,req:"tiger_palm",cost:{energy:35},desc:"Golpe al cuello: aturde 1 turno.",effect:"stun",fx:"physical"},
+    {id:"flying_kick",name:"Patada Voladora",tier:2,req:"tiger_palm",cost:{energy:30},desc:"Salto con patada: 160% daño.",effect:"dmg",mult:1.6,fx:"physical"},
+    {id:"storm_fist",name:"Puño Tormenta",tier:3,req:"blackout",cost:{energy:45},desc:"5 golpes de 60% cada uno.",effect:"multi_hit",count:5,mult:0.6,fx:"physical"},
+    {id:"dragon_kick",name:"Patada del Dragón",tier:4,req:"flying_kick",minTree:2,cost:{energy:60},desc:"⭐ 280% daño definitivo. Req: 2 talentos + Nv.9",effect:"dmg",mult:2.8,fx:"physical"},
+   ]},
+   {id:"wind",name:"Viento",icon:"💨",desc:"Moverse como el viento.",talents:[
+    {id:"wind_step",name:"Paso del Viento",tier:1,req:null,cost:{energy:25},desc:"Esquivás y contraatacás 100% daño.",effect:"dodge_counter",fx:"shadow"},
+    {id:"tornado",name:"Torbellino",tier:2,req:"wind_step",cost:{energy:40},desc:"3 golpes de 85% cada uno.",effect:"triple_hit",mult:0.85,fx:"physical"},
+    {id:"gale_force",name:"Fuerza del Viento",tier:2,req:"wind_step",cost:{energy:35},desc:"Golpe eólico: 170% daño.",effect:"dmg",mult:1.7,fx:"physical"},
+    {id:"hurricane",name:"Huracán",tier:3,req:"tornado",cost:{energy:50},desc:"5 golpes de viento de 75%.",effect:"multi_hit",count:5,mult:0.75,fx:"physical"},
+    {id:"void_palm",name:"Palma del Vacío",tier:4,req:"gale_force",minTree:2,cost:{energy:60},desc:"⭐ 300% daño definitivo. Req: 2 talentos + Nv.9",effect:"dmg",mult:3.0,fx:"arcane"},
+   ]},
+   {id:"chi",name:"Chi",icon:"☯️",desc:"Energía vital interior.",talents:[
+    {id:"inner_peace",name:"Paz Interior",tier:1,req:null,cost:{energy:15},desc:"Meditás: +15 HP y +25 energía.",effect:"meditate",hp:15,energy:25,fx:"heal"},
+    {id:"chi_burst",name:"Explosión de Chi",tier:2,req:"inner_peace",cost:{energy:40},desc:"Energía arcana interior: 180% daño.",effect:"dmg",mult:1.8,fx:"arcane"},
+    {id:"transcend",name:"Trascender",tier:2,req:"inner_peace",cost:{energy:50},desc:"+40% daño y defensa por 2 turnos.",effect:"transcend",fx:"buff"},
+    {id:"chi_tornado",name:"Torbellino de Chi",tier:3,req:"chi_burst",cost:{energy:55},desc:"4 golpes de chi de 85%.",effect:"multi_hit",count:4,mult:0.85,fx:"arcane"},
+    {id:"nirvana",name:"Nirvana",tier:4,req:"transcend",minTree:2,cost:{energy:70},desc:"⭐ 250% daño + cura 60% HP. Req: 2 talentos + Nv.9",effect:"dmg_heal_big",mult:2.5,healPct:0.6,fx:"arcane"},
+   ]},
+  ]},
+ {id:"barbarian",name:"Bárbaro",icon:"🪓",sprite:"🪨",color:"#c84020",resource:"energy",
+  desc:"Guerrero salvaje del norte. Furor imparable y resistencia sobrehumana.",
+  stats:{str:3,agi:3,int:3,vit:3,spi:3},resMax:120,
+  trees:[
+   {id:"fury_b",name:"Furia",icon:"💢",desc:"Ira destructora.",talents:[
+    {id:"rage_strike",name:"Golpe Furioso",tier:1,req:null,cost:{energy:25},desc:"Ira canalizada: 160% daño físico.",effect:"dmg",mult:1.6,fx:"physical"},
+    {id:"cleave",name:"Tajo de Hacha",tier:2,req:"rage_strike",cost:{energy:30},desc:"Tajo brutal de hacha: 170% daño.",effect:"dmg",mult:1.7,fx:"axe"},
+    {id:"war_cry_b",name:"Grito de Guerra",tier:2,req:"rage_strike",cost:{energy:30},desc:"Aterras al enemigo: -30% ataque 2 turnos.",effect:"debuff_dmg",val:0.3,turns:2,fx:"buff"},
+    {id:"headcrush_b",name:"Aplastacráneos",tier:3,req:"cleave",cost:{energy:45},desc:"Hacha gigante: 230% daño físico.",effect:"dmg",mult:2.3,fx:"axe"},
+    {id:"frenzy_b",name:"Frenesí Total",tier:4,req:"war_cry_b",minTree:2,cost:{energy:60},desc:"⭐ +60% daño 3 turnos, +50% HP. Req: 2 talentos + Nv.9",effect:"full_berserk",fx:"buff"},
+   ]},
+   {id:"beast_b",name:"Compañeros",icon:"🐗",desc:"Bestias salvajes aliadas.",talents:[
+    {id:"boar_companion",name:"Jabalí de Combate",tier:1,req:null,cost:{energy:30},desc:"Invocas un jabalí feroz (HP:45, Atk:20) que lucha contigo.",effect:"summon_companion",companion:{type:"boar",sprite:"🐗",name:"Jabalí",hp:45,atk:20},fx:"beast"},
+    {id:"boar_charge",name:"Embestida del Jabalí",tier:2,req:"boar_companion",cost:{energy:35},desc:"Tu jabalí embiste: 140% daño + aturdimiento.",effect:"companion_stun",mult:1.4,fx:"beast"},
+    {id:"raven_scout",name:"Cuervo Explorador",tier:2,req:"boar_companion",cost:{energy:25},desc:"Invocas un cuervo (HP:20, Atk:12) que reduce evasión enemiga.",effect:"summon_raven",companion:{type:"raven",sprite:"🦅",name:"Cuervo",hp:20,atk:12},fx:"beast"},
+    {id:"beast_rage",name:"Furia Bestial",tier:3,req:"boar_charge",cost:{energy:45},desc:"Tu bestia en furia: triple ataque de 100%.",effect:"companion_triple",count:3,fx:"beast"},
+    {id:"warlord",name:"Señor de Bestias",tier:4,req:"raven_scout",minTree:2,cost:{energy:60},desc:"⭐ Todas las bestias atacan: 220% daño. Req: 2 talentos + Nv.9",effect:"companion_all_atk",mult:2.2,fx:"beast"},
+   ]},
+   {id:"axes_b",name:"Hachas",icon:"🪓",desc:"El dominio de las hachas.",talents:[
+    {id:"axe_throw",name:"Lanzar Hacha",tier:1,req:null,cost:{energy:25},desc:"Hacha girando en el aire: 150% daño físico.",effect:"dmg",mult:1.5,fx:"axe"},
+    {id:"dual_axes",name:"Hachas Gemelas",tier:2,req:"axe_throw",cost:{energy:40},desc:"Dos tajos de hacha de 100% cada uno.",effect:"double_hit",mult:1.0,fx:"axe"},
+    {id:"bloodbath",name:"Baño de Sangre",tier:2,req:"axe_throw",cost:{energy:35},desc:"160% daño, roba 30% como HP.",effect:"lifesteal_big",mult:1.6,steal:0.3,fx:"axe"},
+    {id:"berserker_b",name:"Berserker",tier:3,req:"dual_axes",cost:{energy:50},desc:"+50% daño, pierdes 8% HP máx.",effect:"berserk",fx:"buff"},
+    {id:"annihilate_b",name:"Aniquilar",tier:4,req:"bloodbath",minTree:2,cost:{energy:70},desc:"⭐ Destrucción total: 300% daño. Req: 2 talentos + Nv.9",effect:"dmg",mult:3.0,fx:"axe"},
+   ]},
+  ]},
+];
+// ENEMIGOS — mayor dificultad
+const ENEMIES=[
+  {name:"Esqueleto",icon:"💀",level:1,hp:55,str:6,agi:4,int:2,vit:4,xpR:2,gold:15,desc:"Un muerto viviente reanimado.",dmgM:1.0},
+  {name:"Goblin",icon:"👺",level:1,hp:45,str:5,agi:8,int:3,vit:3,xpR:2,gold:12,desc:"Criatura pequeña y ágil.",dmgM:1.0},
+  {name:"Lobo Salvaje",icon:"🐺",level:1,hp:60,str:7,agi:9,int:1,vit:5,xpR:2,gold:10,desc:"Rápido y feroz.",dmgM:1.0},
+  {name:"Orco",icon:"👹",level:2,hp:100,str:12,agi:5,int:3,vit:9,xpR:4,gold:30,desc:"Guerrero brutal.",dmgM:1.2},
+  {name:"Troll",icon:"🧌",level:2,hp:120,str:13,agi:3,int:2,vit:12,xpR:4,gold:35,desc:"Se regenera lentamente.",dmgM:1.1,regen:6},
+  {name:"Bandido",icon:"🦹",level:2,hp:90,str:10,agi:10,int:4,vit:7,xpR:4,gold:45,desc:"Ladrón de caminos veloz.",dmgM:1.2},
+  {name:"Araña Gigante",icon:"🕷️",level:3,hp:120,str:11,agi:12,int:3,vit:8,xpR:6,gold:40,desc:"Envenena a sus víctimas.",dmgM:1.2,poison:true},
+  {name:"Gnoll",icon:"🐺",level:3,hp:150,str:14,agi:7,int:4,vit:11,xpR:6,gold:50,desc:"Hiena bípeda guerrera.",dmgM:1.3},
+  {name:"Lich",icon:"🧙",level:3,hp:160,str:8,agi:7,int:18,vit:7,xpR:6,gold:65,desc:"Hechicero no-muerto de inmenso poder.",dmgM:1.4,magic:true},
+  {name:"Vampiro",icon:"🧛",level:4,hp:180,str:15,agi:12,int:10,vit:11,xpR:8,gold:75,desc:"Señor de la noche que drena vida.",dmgM:1.3,drain:true},
+  {name:"Ogro",icon:"👾",level:4,hp:220,str:20,agi:3,int:2,vit:18,xpR:8,gold:70,desc:"Gigante bruto con maza.",dmgM:1.4},
+  {name:"Wyvern",icon:"🦎",level:4,hp:200,str:17,agi:10,int:7,vit:13,xpR:8,gold:80,desc:"Dragón menor con veneno.",dmgM:1.3,poison:true},
+  {name:"Dragón Rojo",icon:"🐉",level:5,hp:320,str:22,agi:9,int:14,vit:20,xpR:10,gold:130,desc:"Anciano dragón. Fuego que derrite el acero.",dmgM:1.6,fireBreath:true},
+  {name:"Rey Esqueleto",icon:"💀",level:5,hp:290,str:18,agi:9,int:12,vit:16,xpR:10,gold:120,desc:"El señor de los muertos.",dmgM:1.5,magic:true},
+  {name:"Demonio Mayor",icon:"😈",level:6,hp:400,str:25,agi:13,int:18,vit:22,xpR:12,gold:180,desc:"Entidad demoníaca de las profundidades.",dmgM:1.7,magic:true},
+];
+// ITEMS — con requisitos, precios base 50, stats detallados
+const ITEMS={
+  short_sword:{id:"short_sword",name:"Espada Corta",icon:"🗡️",slot:"mainhand",cost:50,dmg:10,desc:"Daño +10.",req:{str:2},reqD:"FUE 2"},
+  long_sword:{id:"long_sword",name:"Espada Larga",icon:"⚔️",slot:"mainhand",cost:120,dmg:18,str:1,desc:"Daño +18, FUE +1.",req:{str:4},reqD:"FUE 4"},
+  dagger:{id:"dagger",name:"Daga",icon:"🔪",slot:"mainhand",cost:50,dmg:8,agi:2,desc:"Daño +8, AGI +2.",req:{agi:2},reqD:"AGI 2"},
+  rune_dagger:{id:"rune_dagger",name:"Daga Rúnica",icon:"🔪",slot:"mainhand",cost:200,dmg:20,agi:3,int:2,desc:"Daño +20, AGI +3, INT +2.",req:{agi:5,int:3},reqD:"AGI 5, INT 3"},
+  mace:{id:"mace",name:"Maza",icon:"🪃",slot:"mainhand",cost:50,dmg:12,vit:1,desc:"Daño +12, VIT +1.",req:{str:3},reqD:"FUE 3"},
+  wand:{id:"wand",name:"Varita Arcana",icon:"🪄",slot:"mainhand",cost:80,dmg:8,int:4,desc:"Daño +8, INT +4.",req:{int:4},reqD:"INT 4"},
+  holy_mace:{id:"holy_mace",name:"Maza Sagrada",icon:"✝️",slot:"mainhand",cost:180,dmg:18,spi:3,vit:2,desc:"Daño +18, SPI +3, VIT +2.",req:{str:4,spi:3},reqD:"FUE 4, SPI 3"},
+  great_axe:{id:"great_axe",name:"Hacha de Guerra",icon:"🪓",slot:"mainhand",cost:120,dmg:28,str:2,desc:"Daño +28, FUE +2. (2 manos)",req:{str:5},reqD:"FUE 5",twoHand:true},
+  great_sword:{id:"great_sword",name:"Espadón",icon:"⚔️",slot:"mainhand",cost:180,dmg:34,str:3,desc:"Daño +34, FUE +3. (2 manos)",req:{str:7},reqD:"FUE 7",twoHand:true},
+  staff:{id:"staff",name:"Bastón Mágico",icon:"🪄",slot:"mainhand",cost:100,dmg:14,int:6,spi:2,desc:"Daño +14, INT +6, SPI +2. (2 manos)",req:{int:5},reqD:"INT 5",twoHand:true},
+  arcane_orb:{id:"arcane_orb",name:"Orbe Arcano",icon:"🔮",slot:"mainhand",cost:200,dmg:12,int:8,spi:3,desc:"Daño +12, INT +8, SPI +3. (2 manos)",req:{int:7},reqD:"INT 7",twoHand:true},
+  hunting_bow:{id:"hunting_bow",name:"Arco de Caza",icon:"🏹",slot:"mainhand",cost:80,dmg:16,agi:2,desc:"Daño +16, AGI +2. (2 manos)",req:{agi:5},reqD:"AGI 5",twoHand:true},
+  elven_bow:{id:"elven_bow",name:"Arco Élfico",icon:"🏹",slot:"mainhand",cost:220,dmg:22,agi:4,desc:"Daño +22, AGI +4. (2 manos)",req:{agi:7},reqD:"AGI 7",twoHand:true},
+  buckler:{id:"buckler",name:"Rodela",icon:"🛡️",slot:"offhand",cost:50,def:8,desc:"DEF +8.",req:{str:2},reqD:"FUE 2"},
+  tower_shield:{id:"tower_shield",name:"Escudo de Torre",icon:"🛡️",slot:"offhand",cost:150,def:18,vit:2,desc:"DEF +18, VIT +2.",req:{str:5},reqD:"FUE 5"},
+  offhand_dagger:{id:"offhand_dagger",name:"Daga Secundaria",icon:"🔪",slot:"offhand",cost:50,dmg:6,desc:"Daño +6.",req:{agi:3},reqD:"AGI 3"},
+  arcane_focus:{id:"arcane_focus",name:"Foco Arcano",icon:"🔮",slot:"offhand",cost:100,int:5,spi:3,desc:"INT +5, SPI +3.",req:{int:4},reqD:"INT 4"},
+  leather_chest:{id:"leather_chest",name:"Peto de Cuero",icon:"🥋",slot:"chest",cost:50,def:7,agi:1,desc:"DEF +7, AGI +1.",req:{},reqD:"Sin requisito"},
+  chain_chest:{id:"chain_chest",name:"Cota de Malla",icon:"🛡️",slot:"chest",cost:130,def:14,vit:1,desc:"DEF +14, VIT +1.",req:{str:4},reqD:"FUE 4"},
+  plate_chest:{id:"plate_chest",name:"Peto de Placas",icon:"⚙️",slot:"chest",cost:260,def:22,vit:2,str:1,desc:"DEF +22, VIT +2, FUE +1.",req:{str:7},reqD:"FUE 7"},
+  mage_robe:{id:"mage_robe",name:"Túnica Arcana",icon:"👘",slot:"chest",cost:100,def:4,int:4,spi:3,desc:"DEF +4, INT +4, SPI +3.",req:{int:4},reqD:"INT 4"},
+  leather_helm:{id:"leather_helm",name:"Yelmo de Cuero",icon:"⛑️",slot:"head",cost:50,def:5,desc:"DEF +5.",req:{},reqD:"Sin requisito"},
+  iron_helm:{id:"iron_helm",name:"Yelmo de Hierro",icon:"⛑️",slot:"head",cost:100,def:10,vit:1,desc:"DEF +10, VIT +1.",req:{str:3},reqD:"FUE 3"},
+  wizard_hat:{id:"wizard_hat",name:"Sombrero de Mago",icon:"🎩",slot:"head",cost:80,def:2,int:3,spi:4,desc:"DEF +2, INT +3, SPI +4.",req:{int:3},reqD:"INT 3"},
+  leather_legs:{id:"leather_legs",name:"Pantalón de Cuero",icon:"👖",slot:"legs",cost:50,def:6,agi:1,desc:"DEF +6, AGI +1.",req:{},reqD:"Sin requisito"},
+  chain_legs:{id:"chain_legs",name:"Grebas de Malla",icon:"🩱",slot:"legs",cost:110,def:11,vit:1,desc:"DEF +11, VIT +1.",req:{str:4},reqD:"FUE 4"},
+  leather_gloves:{id:"leather_gloves",name:"Guantes de Cuero",icon:"🧤",slot:"hands",cost:50,def:4,agi:1,desc:"DEF +4, AGI +1.",req:{},reqD:"Sin requisito"},
+  iron_gauntlets:{id:"iron_gauntlets",name:"Manoplas de Hierro",icon:"🥊",slot:"hands",cost:90,def:8,str:1,desc:"DEF +8, FUE +1.",req:{str:4},reqD:"FUE 4"},
+  leather_boots:{id:"leather_boots",name:"Botas de Cuero",icon:"👢",slot:"feet",cost:50,def:5,agi:1,desc:"DEF +5, AGI +1.",req:{},reqD:"Sin requisito"},
+  iron_boots:{id:"iron_boots",name:"Botas de Hierro",icon:"🥾",slot:"feet",cost:90,def:8,vit:1,desc:"DEF +8, VIT +1.",req:{str:3},reqD:"FUE 3"},
+  amulet_power:{id:"amulet_power",name:"Amuleto de Poder",icon:"📿",slot:"neck",cost:100,str:2,vit:2,desc:"FUE +2, VIT +2.",req:{},reqD:"Sin requisito"},
+  amulet_magic:{id:"amulet_magic",name:"Amuleto Arcano",icon:"🔮",slot:"neck",cost:110,int:3,spi:2,desc:"INT +3, SPI +2.",req:{int:3},reqD:"INT 3"},
+  amulet_swift:{id:"amulet_swift",name:"Amuleto Veloz",icon:"💫",slot:"neck",cost:100,agi:3,str:1,desc:"AGI +3, FUE +1.",req:{agi:3},reqD:"AGI 3"},
+};
+const SLOT_INFO={mainhand:{label:"Mano Ppal.",icon:"⚔️"},offhand:{label:"Mano Sec.",icon:"🛡️"},head:{label:"Casco",icon:"⛑️"},chest:{label:"Pecho",icon:"🛡️"},hands:{label:"Guantes",icon:"🧤"},legs:{label:"Piernas",icon:"👖"},feet:{label:"Botas",icon:"👢"},neck:{label:"Collar",icon:"📿"}};
+
+
+// ════ ESTADO
+let player=null,selectedClass=null,freePoints=5;
+let addedStats={str:0,agi:0,int:0,vit:0,spi:0},selectedTalents=[];
+let currentEnemy=null,pvpMode=false;
+let battleLog=[],playerHP=0,enemyHP=0,enemyHPmax=0,playerRes=0;
+let myTurn=true,battleOver=false,stunEnemy=false,defStance=false;
+let battleBuffs={},dotEffects=[],hotEffects=[],shieldVal=0;
+let manaShieldActive=false,immuneNextTurn=false,dodgeNextTurn=false;
+let enemyDotTurns=0,enemyDotDmg=0,deathMarkActive=false;
+let companions=[],pendingXP=0,pendingGold=0;
+let currentCsTab='stats',currentMTab='weapons';
+let passiveDef=0,passiveMDef=0;
+
+// ════ SAVE/LOAD
+function saveGame(){try{const s=loadAll();s[player.name]=JSON.parse(JSON.stringify(player));localStorage.setItem('rds4',JSON.stringify(s));}catch(e){}}
+function loadAll(){try{return JSON.parse(localStorage.getItem('rds4'))||{};}catch(e){return {};}}
+function delSave(n){const s=loadAll();delete s[n];localStorage.setItem('rds4',JSON.stringify(s));}
+
+// ════ FORMULAS
+// STR:+1 atk fís, +1 HP | AGI:+0.5 atk fís, +1%dodge, +0.5 def fís
+// VIT:+5 HP, +1 def fís, +1 def mag | INT:+1 atk mag, +3 maná | SPI:+3 HP, +5 maná, +0.5 def mag
+function calcMaxHP(p){
+  const v=totStat('vit',p),sp=totStat('spi',p),st=totStat('str',p),lv=p.level;
+  return Math.floor(50+v*5+sp*3+st*1+lv*8);
+}
+function calcMaxRes(p){
+  const c=CLASSES.find(x=>x.id===p.class);
+  const ie=c.resource==='energy';
+  const sp=totStat('spi',p),it=totStat('int',p),lv=p.level;
+  return ie?((c.resMax||100)+lv*5):((c.resMax||100)+it*3+sp*5+lv*5);
+}
+function calcPhysDmg(p){
+  p=p||player;
+  const st=totStat('str',p),ag=totStat('agi',p);
+  let b=st*1+ag*0.5;
+  const w=p.equipment?ITEMS[p.equipment.mainhand]:null;
+  if(w&&w.dmg)b+=w.dmg;
+  if(battleBuffs.dmg)b*=(1+battleBuffs.dmg.val);
+  if(battleBuffs.allStats)b*=(1+battleBuffs.allStats.val);
+  return Math.max(1,Math.floor(b));
+}
+function calcMagicDmg(p){
+  p=p||player;
+  const it=totStat('int',p);
+  let b=it*1;
+  const w=p.equipment?ITEMS[p.equipment.mainhand]:null;
+  if(w&&w.dmg)b+=w.dmg*0.5;
+  if(battleBuffs.dmg)b*=(1+battleBuffs.dmg.val);
+  if(battleBuffs.allStats)b*=(1+battleBuffs.allStats.val);
+  return Math.max(1,Math.floor(b));
+}
+function calcDef(p){
+  p=p||player;
+  const v=totStat('vit',p),ag=totStat('agi',p);
+  let d=v*1+ag*0.5+eqBonus('def',p)+passiveDef;
+  if(battleBuffs.def)d*=(1+battleBuffs.def.val);
+  return Math.max(0,Math.floor(d));
+}
+function calcMDef(p){
+  p=p||player;
+  const v=totStat('vit',p),sp=totStat('spi',p);
+  let d=v*1+sp*0.5+passiveMDef;
+  if(battleBuffs.def)d*=(1+battleBuffs.def.val);
+  return Math.max(0,Math.floor(d));
+}
+function calcDodge(p){p=p||player;return Math.min(60,Math.floor(totStat('agi',p)*1));}
+function calcHeal(mult){return Math.floor((totStat('spi')*2+totStat('int')*0.5)*(mult||1));}
+function eqBonus(stat,p){
+  p=p||player;
+  if(!p||!p.equipment)return 0;
+  return Object.values(p.equipment).reduce((s,id)=>{if(!id)return s;const it=ITEMS[id];return s+(it&&it[stat]?it[stat]:0);},0);
+}
+function totStat(s,p){p=p||player;return(p?p.stats[s]||0:0)+eqBonus(s,p);}
+function meetsReq(item,p){
+  p=p||player;if(!item.req)return true;
+  for(const[s,v] of Object.entries(item.req)){if(totStat(s,p)<v)return false;}
+  return true;
+}
+function applyPassives(){
+  passiveDef=0;passiveMDef=0;
+  if(!player)return;
+  const c=CLASSES.find(x=>x.id===player.class);if(!c)return;
+  c.trees.flatMap(tr=>tr.talents).forEach(t=>{
+    if(player.talents.includes(t.id)&&t.effect==='passive_def'){passiveDef+=t.passiveVal||3;passiveMDef+=t.passiveVal||3;}
+  });
+}
+
+// ════ BARS
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function hpBar(cur,max,col){const p=clamp(cur/max*100,0,100);return `<div class="bar-track"><div class="bar-fill" style="width:${p}%;background:linear-gradient(90deg,${col}88,${col});"></div></div><span class="bar-lbl" style="color:${col}88;">${Math.ceil(cur)}/${max}</span>`;}
+function resBar(cur,max,ie){const c=ie?'#ffcc22':'#4488ff',l=ie?'⚡':'💧';const p=clamp(cur/max*100,0,100);return `<div class="bar-track"><div class="bar-fill" style="width:${p}%;background:linear-gradient(90deg,${c}55,${c});"></div></div><span class="bar-lbl" style="color:${c}88;">${l}${Math.ceil(cur)}/${max}</span>`;}
+
+// ════ CLASS HELPERS
+const getClass=()=>CLASSES.find(c=>c.id===(selectedClass||(player?player.class:null)));
+function getAllTalents(c){return(c||getClass()).trees.flatMap(tr=>tr.talents);}
+function getMyTalents(){const c=getClass();if(!c)return[];return getAllTalents(c).filter(t=>player.talents.includes(t.id));}
+function isEnergy(){return getClass()&&getClass().resource==='energy';}
+
+// ════ TALENT TREE
+function isTUnlocked(tid,owned,tree){
+  const t=tree.talents.find(x=>x.id===tid);if(!t)return false;
+  if(t.req===null)return true;return owned.includes(t.req);
+}
+function treeCount(tree,owned){return tree.talents.filter(t=>owned.includes(t.id)).length;}
+function capstoneOk(t,tree,owned,lvl){
+  if(!t.minTree)return true;return(lvl>=9)&&treeCount(tree,owned)>=t.minTree;
+}
+function renderTree(tree,owned,toggleFn,maxSel,curSel,lvl){
+  const byReq={};
+  tree.talents.forEach(t=>{const k=t.req||'__r';if(!byReq[k])byReq[k]=[];byReq[k].push(t);});
+  const levels=[];const vis=new Set();
+  let q=(byReq['__r']||[]).map(t=>({t,lv:0}));
+  while(q.length){const{t,lv}=q.shift();if(vis.has(t.id))continue;vis.add(t.id);if(!levels[lv])levels[lv]=[];levels[lv].push(t);(byReq[t.id]||[]).forEach(c=>q.push({t:c,lv:lv+1}));}
+  const ie=isEnergy();let html='';
+  levels.forEach((lvT,li)=>{
+    if(li>0)html+=`<div class="t-connector">↓</div>`;
+    html+=`<div class="tree-row">`;
+    lvT.forEach(t=>{
+      const unl=isTUnlocked(t.id,owned,tree),lrn=owned.includes(t.id);
+      const isCap=!!t.minTree,capOk=isCap?capstoneOk(t,tree,owned,lvl||1):true;
+      const active=unl&&(!isCap||capOk);
+      const canTog=toggleFn&&active&&(lrn||(curSel.length<maxSel));
+      const cls=lrn?'learned':active?'unlocked':'locked';
+      const cost=t.cost.mana||t.cost.energy||0;
+      html+=`<div class="tree-node"><div class="t-card ${cls}${isCap?' capstone':''}${isCap&&capOk?' capstone-ready':''}" onclick="${canTog?`${toggleFn}('${tree.id}','${t.id}')`:''}" style="${!active?'cursor:not-allowed':''}">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
+          <p class="title" style="font-size:10px;color:${lrn?'#e8c84c':active?'#8a6030':'#3a2820'};">${lrn?'✦ ':''}${isCap?'⭐':''}${t.name}</p>
+          ${cost?`<span style="font-size:9px;color:${ie?'#ffcc22':'#4488ff'};">${ie?'⚡':'💧'}${cost}</span>`:''}
+        </div>
+        <p style="font-size:9px;color:${active?'#6a5030':'#2a1a10'};font-family:'Crimson Text',serif;">${t.desc}</p>
+        ${!unl?`<p style="font-size:8px;color:#3a2020;margin-top:1px;">🔒 Req: ${tree.talents.find(x=>x.id===t.req)?.name||'?'}</p>`:''}
+        ${isCap&&!capOk&&unl?`<p style="font-size:8px;color:#aa44cc;margin-top:1px;">⭐ Necesitás mín ${t.minTree} talentos en rama + Nv.9</p>`:''}
+      </div></div>`;
+    });
+    html+=`</div>`;
+  });
+  return html;
+}
+
+window.treeToggle=function(treeId,tid){
+  const c=getClass();if(!c)return;
+  const tree=c.trees.find(tr=>tr.id===treeId);if(!tree)return;
+  if(selectedTalents.includes(tid)){
+    if(tree.talents.filter(t=>t.req===tid&&selectedTalents.includes(t.id)).length)return;
+    selectedTalents=selectedTalents.filter(x=>x!==tid);
+  }else{
+    if(selectedTalents.length>=1)return;
+    const t=tree.talents.find(x=>x.id===tid);
+    if(!isTUnlocked(tid,selectedTalents,tree)||t?.minTree)return;
+    selectedTalents.push(tid);
+  }
+  renderCreationTalents();
+};
+function renderCreationTalents(){
+  const c=getClass();if(!c)return;
+  const el=document.getElementById('talent-tree-create');if(!el)return;
+  el.innerHTML=c.trees.map(tree=>`<div class="card" style="border-color:#3a2a10;margin-bottom:7px;"><div style="display:flex;align-items:center;gap:7px;margin-bottom:6px;"><span style="font-size:16px;">${tree.icon}</span><div><p class="title" style="font-size:11px;">${tree.name}</p><p class="dim" style="font-size:9px;">${tree.desc}</p></div></div>${renderTree(tree,selectedTalents,'treeToggle',1,selectedTalents,1)}</div>`).join('');
+  const lbl=document.getElementById('talent-count-lbl');if(lbl)lbl.textContent=`Talento elegido: ${selectedTalents.length}/1`;
+}
+
+// ════ NAVEGACIÓN
+function go(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));const el=document.getElementById(id);if(el)el.classList.add('active');window.scrollTo(0,0);if(id==='s-create-stats')renderStats();if(id==='s-create-talents')renderCreationTalents();}
+function goToTitle(){if(player)saveGame();go('s-title');renderTitleScreen();}
+function csTabGo(t){
+  currentCsTab=t;
+  // Make sure charsheet screen is active first
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const sc=document.getElementById('s-charsheet');if(sc)sc.classList.add('active');
+  window.scrollTo(0,0);
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
+  const te=document.getElementById('tab-'+t);if(te)te.classList.add('active');
+  const nm=document.getElementById('cs-name');if(nm)nm.textContent=player.name;
+  if(t==='stats')renderCsStats();else if(t==='equip')renderCsEquip();else renderCsTalents();
+}
+
+// ════ TITLE
+function renderTitleScreen(){
+  const saves=loadAll(),names=Object.keys(saves);
+  const el=document.getElementById('title-heroes');
+  if(!names.length){el.innerHTML=`<p class="dim center" style="font-size:11px;margin-bottom:7px;">No hay personajes guardados</p>`;return;}
+  el.innerHTML=`<p class="dim center" style="font-size:10px;margin-bottom:6px;">— Personajes guardados —</p>`+names.map(n=>{
+    const h=saves[n],c=CLASSES.find(x=>x.id===h.class);
+    return `<div class="saved-hero ${player&&player.name===n?'active-h':''}" onclick="loadHero('${n}')">
+      <span style="font-size:30px;">${c?c.icon:'⚔️'}</span>
+      <div style="flex:1"><p class="title" style="font-size:12px;">${h.name}</p><p style="font-family:'Crimson Text',serif;color:${c?c.color:'#c8960c'};font-size:10px;">${c?c.name:'?'} · Nivel ${h.level}</p><p class="dim" style="font-size:9px;">🪙${h.gold} · XP ${h.xp}/${xpForLevel(h.level)}</p></div>
+      <div style="display:flex;flex-direction:column;gap:3px;">
+        <button class="btn sm" onclick="event.stopPropagation();loadHero('${n}')">▶</button>
+        <button class="btn sm danger" onclick="event.stopPropagation();confirmDel('${n}')">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function loadHero(n){const s=loadAll();player=s[n];if(!player)return;selectedClass=null;applyPassives();renderHub();go('s-hub');}
+function confirmDel(n){if(confirm(`¿Borrar "${n}"?`)){delSave(n);if(player&&player.name===n)player=null;renderTitleScreen();}}
+
+// ════ CREACIÓN
+function resetCreation(){selectedClass=null;freePoints=5;addedStats={str:0,agi:0,int:0,vit:0,spi:0};selectedTalents=[];}
+function saveName(){const n=document.getElementById('inp-name').value.trim();if(!n)return;renderClassList();go('s-create-class');}
+function renderClassList(){
+  document.getElementById('class-list').innerHTML=CLASSES.map(c=>`<div class="card ${selectedClass===c.id?'sel':''}" onclick="selClass('${c.id}')" style="cursor:pointer;border-color:${selectedClass===c.id?c.color:'#3a2a10'};"><div class="row"><span style="font-size:24px;flex-shrink:0;">${c.icon}</span><div style="flex:1"><p class="title" style="color:${c.color};font-size:12px;">${c.name}</p><p class="dim" style="font-size:9px;margin-top:1px;">${c.desc}</p><p style="font-family:'Crimson Text',serif;color:#5a8050;font-size:9px;margin-top:1px;">${c.resource==='mana'?'💧 Maná':'⚡ Energía'}</p></div></div></div>`).join('');
+}
+function selClass(id){selectedClass=id;addedStats={str:0,agi:0,int:0,vit:0,spi:0};freePoints=5;selectedTalents=[];renderClassList();}
+function goToStats(){if(!selectedClass)return;go('s-create-stats');}
+function renderStats(){
+  if(!selectedClass)return;
+  const base=getClass().stats;
+  document.getElementById('free-pts').textContent=`+${freePoints} pts`;
+  document.getElementById('stat-sliders').innerHTML=Object.keys(base).map(s=>`<div class="stat-row"><span class="label" style="width:98px;font-size:11px;">${STAT_LABELS[s]}</span><button class="stat-btn" onclick="chStat('${s}',-1)">−</button><span class="stat-val">${base[s]+(addedStats[s]||0)}</span><button class="stat-btn plus" onclick="chStat('${s}',1)">+</button></div>`).join('');
+  const hb=document.getElementById('stat-hint-box');if(hb)hb.innerHTML=`<p class="dim" style="font-size:8px;margin-bottom:2px;color:#5a8050;">📖 Cada punto en…</p>`+Object.entries(STAT_DESC).map(([s,d])=>`<p style="font-size:8px;color:#5a4010;font-family:'Crimson Text',serif;margin-bottom:1px;">${d}</p>`).join('');
+}
+function chStat(s,d){if(d>0&&freePoints<=0)return;if(d<0&&(addedStats[s]||0)<=0)return;addedStats[s]=(addedStats[s]||0)+d;freePoints-=d;renderStats();}
+function createHero(){
+  const name=document.getElementById('inp-name').value.trim();if(!name)return;
+  const c=getClass();const fs={};
+  Object.keys(c.stats).forEach(k=>fs[k]=c.stats[k]+(addedStats[k]||0));
+  const tmp={class:c.id,stats:fs,level:1,equipment:{mainhand:null,offhand:null,head:null,chest:null,hands:null,legs:null,feet:null,neck:null}};
+  const maxHp=calcMaxHP({...tmp,stats:fs});
+  const maxRes=calcMaxRes({...tmp,stats:fs});
+  const talents=selectedTalents.length?[...selectedTalents]:[c.trees[0].talents[0].id];
+  player={name,class:c.id,stats:fs,talents,talentPts:1,level:1,xp:0,hp:maxHp,maxHp,res:maxRes,maxRes,gold:100,pendingPts:0,equipment:{...tmp.equipment}};
+  selectedClass=null;applyPassives();saveGame();renderHub();go('s-hub');
+}
+
+// ════ HUB
+function renderHub(){
+  applyPassives();
+  const c=CLASSES.find(x=>x.id===player.class),ie=c.resource==='energy';
+  const xpPrev=XP_TABLE[player.level-1]||0,xpNext=xpForLevel(player.level);
+  const xpPct=clamp(((player.xp-xpPrev)/(xpNext-xpPrev))*100,0,100);
+  document.getElementById('hub-header').innerHTML=`<div class="row"><span style="font-size:32px;">${c.icon}</span><div style="flex:1;min-width:0;"><p class="title" style="font-size:13px;">${player.name}</p><p style="font-family:'Crimson Text',serif;color:${c.color};font-size:9px;">${c.name} · Nivel ${player.level}</p><div class="bar-wrap mt8">${hpBar(player.hp,player.maxHp,'#e84040')}</div><div class="bar-wrap">${resBar(player.res,player.maxRes,ie)}</div><div class="bar-track" style="margin-top:2px;"><div class="bar-fill" style="width:${xpPct}%;background:linear-gradient(90deg,#2244aa88,#4488ff);"></div></div><span style="color:#4488ff;font-family:'Crimson Text',serif;font-size:8px;">XP ${player.xp}/${xpNext}</span></div><span class="gold" style="font-size:11px;align-self:flex-start;flex-shrink:0;">🪙${player.gold}</span></div>`;
+  const myT=getMyTalents();
+  document.getElementById('hub-talents').innerHTML=myT.map(t=>`<span class="tag">✦ ${t.name}</span>`).join('')+
+    ((player.pendingPts||0)>0?`<p class="green" style="font-size:9px;font-family:'Cinzel',serif;margin-top:5px;animation:glow 2s infinite;">⬆️ ¡${player.pendingPts} puntos de atributo sin asignar!</p>`:'')+
+    ((player.talentPts||0)>0?`<p style="color:#cc44aa;font-size:9px;font-family:'Cinzel',serif;margin-top:2px;animation:glow 2s infinite;">⭐ ¡${player.talentPts} punto(s) de talento disponibles!</p>`:'');
+}
+
+// ════ SELECT
+function renderSelect(){
+  document.getElementById('select-title').textContent=pvpMode?'⚔️ Arena PvP':'🗡️ Elige Enemigo';
+  const list=pvpMode?CLASSES.map(c=>({name:`${c.name} Rival`,icon:c.icon,level:player.level,hp:calcMaxHP({class:c.id,stats:c.stats,level:player.level,equipment:{}}),str:c.stats.str+player.level*2,agi:c.stats.agi+player.level,int:c.stats.int+player.level,vit:c.stats.vit+3,xpR:player.level*2,gold:50+player.level*15,desc:`Un ${c.name} de nivel ${player.level}.`,dmgM:1.3})):ENEMIES.filter(e=>e.level<=player.level+1);
+  window._sList=list;
+  document.getElementById('enemy-list').innerHTML=list.map((e,i)=>`<div class="card" style="cursor:pointer;" onclick="startBattle(${i})"><div class="row"><span style="font-size:28px;flex-shrink:0;">${e.icon}</span><div style="flex:1"><p class="title" style="font-size:11px;">${e.name}</p><p class="dim" style="font-size:9px;">${e.desc||''}</p><div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:2px;"><span style="color:#e84040;font-size:9px;">❤️${e.hp}</span><span class="gold" style="font-size:9px;">Nv.${e.level}</span><span class="green" style="font-size:9px;">✨${e.xpR}XP</span><span style="color:#f0c030;font-size:9px;">🪙${e.gold}</span></div></div></div></div>`).join('');
+}
+
+// ════ ARENA
+function renderArena(){
+  const c=CLASSES.find(x=>x.id===player.class),ie=c.resource==='energy';
+  const pSide=`<div class="combatant" id="comb-p"><div class="fighter-wrap"><div class="fighter-body${playerHP<=0?' dead-a':''}" id="fb-p">${CLS_SPRITE[player.class]||c.icon}</div></div><div style="width:98px;"><div class="bar-wrap">${hpBar(playerHP,player.maxHp,'#e84040')}</div><div class="bar-wrap">${resBar(playerRes,player.maxRes,ie)}</div>${shieldVal>0?`<p style="color:#88aaff;font-size:8px;text-align:center;">🔰${shieldVal}</p>`:''}</div><p class="cname">${player.name}</p></div>`;
+  const eSide=`<div class="combatant" id="comb-e"><div class="fighter-wrap"><div class="fighter-body${enemyHP<=0?' dead-a':''}" id="fb-e" style="transform:scaleX(-1)">${currentEnemy.icon}</div></div><div style="width:98px;"><div class="bar-wrap">${hpBar(enemyHP,enemyHPmax,'#c0392b')}</div>${dotEffects.length?`<p style="color:#aa4400;font-size:8px;text-align:center;">🔥DoT</p>`:''} ${stunEnemy?`<p style="color:#ffcc22;font-size:8px;text-align:center;">💫Aturdido</p>`:''}</div><p class="cname" style="color:#e84040;">${currentEnemy.name}</p></div>`;
+  document.getElementById('arena-row').innerHTML=`${pSide}<div class="arena-vs">VS</div>${eSide}`;
+  const cr=document.getElementById('comp-row');
+  if(companions.length){cr.innerHTML=`<p class="dim" style="font-size:8px;margin-right:3px;">Compañeros:</p>`+companions.filter(cp=>cp.alive).map((cp,i)=>`<div style="text-align:center;"><div class="comp-sprite" id="cs-${i}">${cp.sprite}</div><div style="font-size:7px;color:#78c840;">${cp.name}</div><div style="background:#0f0a04;border-radius:2px;height:4px;border:1px solid #3a2a10;overflow:hidden;width:34px;"><div style="width:${clamp(cp.hp/cp.maxHp*100,0,100)}%;height:100%;background:#4aaa44;"></div></div></div>`).join('');}else cr.innerHTML='';
+}
+
+// ════ FX
+function playFX(fxKey,dir){
+  const fx=FX[fxKey]||FX.physical;
+  const layer=document.getElementById('fx-layer');if(!layer)return;
+  if(fx.proj){const p=document.createElement('div');p.className=`fx-proj ${dir==='r'?'pr':'pl'}`;p.textContent=fx.proj;p.style.cssText=dir==='r'?'left:18%;top:35%':'right:18%;top:35%';layer.appendChild(p);setTimeout(()=>p.remove(),380);}
+  setTimeout(()=>{const e=document.createElement('div');e.className='fx-exp';e.textContent=fx.exp;e.style.cssText=dir==='r'?'right:10%;top:15%':'left:10%;top:15%';layer.appendChild(e);setTimeout(()=>e.remove(),480);},220);
+}
+function playHealFX(txt){const layer=document.getElementById('fx-layer');if(!layer)return;const e=document.createElement('div');e.className='fx-heal-txt';e.textContent=txt||'+HP';e.style.cssText='left:15%;top:22%;color:#44ff88;';layer.appendChild(e);setTimeout(()=>e.remove(),820);}
+function playDmgFX(n,dir){const layer=document.getElementById('fx-layer');if(!layer)return;const e=document.createElement('div');e.className='fx-heal-txt';e.textContent=`-${n}`;e.style.cssText=`${dir==='r'?'right':'left'}:10%;top:18%;color:#ff6644;`;layer.appendChild(e);setTimeout(()=>e.remove(),680);}
+function sprAtk(id,dir){const el=document.getElementById(id);if(!el)return;el.classList.add(dir==='r'?'atk-r':'atk-l');setTimeout(()=>el&&el.classList.remove('atk-r','atk-l'),500);}
+function sprCast(id){const el=document.getElementById(id);if(!el)return;el.classList.add('cast-a');setTimeout(()=>el&&el.classList.remove('cast-a'),500);}
+function sprHit(id){const el=document.getElementById(id);if(!el)return;el.classList.add('hit-a');setTimeout(()=>el&&el.classList.remove('hit-a'),420);}
+
+// ════ BATTLE CORE
+function startBattle(idx){
+  currentEnemy={...window._sList[idx]};
+  playerHP=player.hp;enemyHP=currentEnemy.hp;enemyHPmax=currentEnemy.hp;playerRes=player.res;
+  battleLog=[`⚔️ ¡${player.name} vs ${currentEnemy.name}!`];
+  myTurn=true;battleOver=false;stunEnemy=false;defStance=false;
+  battleBuffs={};dotEffects=[];hotEffects=[];shieldVal=0;
+  manaShieldActive=false;immuneNextTurn=false;dodgeNextTurn=false;
+  enemyDotTurns=0;enemyDotDmg=0;deathMarkActive=false;companions=[];
+  applyPassives();renderArena();renderBUI();go('s-battle');
+}
+function addLog(m){battleLog.push(m);}
+function renderBLog(){const el=document.getElementById('b-log');el.innerHTML=battleLog.map((l,i)=>`<p class="log-line ${i===battleLog.length-1?'new':'old'}">${l}</p>`).join('');el.scrollTop=el.scrollHeight;}
+function renderBActions(){
+  const act=document.getElementById('b-actions');
+  if(!myTurn||battleOver){act.innerHTML=`<div class="card center" style="padding:7px;"><p class="red-t" style="animation:flicker 1s infinite;font-size:11px;">${battleOver?'Combate terminado...':'El enemigo actúa...'}</p></div>`;return;}
+  const ie=isEnergy(),rL=ie?'⚡':'💧';
+  const myT=getMyTalents();
+  const aliveC=companions.filter(cp=>cp.alive);
+  act.innerHTML=`<button class="btn red" onclick="doAtk()" style="margin-bottom:5px;">⚔️ Ataque Normal</button>`+
+    myT.map(t=>{const cost=t.cost.mana||t.cost.energy||0;const ok=playerRes>=cost;return `<button class="btn purple" onclick="${ok?`doTalent('${t.id}')`:''}" style="margin-bottom:5px;${ok?'':'opacity:.35;cursor:not-allowed'}">✦ ${t.name} <span style="font-size:9px;">(${rL}${cost})</span></button>`;}).join('')+
+    aliveC.map((cp,i)=>`<button class="btn" style="background:linear-gradient(135deg,#1a4a1a33,#2a6a2a66);border-color:#4aaa44;color:#88ee88;font-size:11px;margin-bottom:5px;" onclick="compAtk(${i})">🐾 ${cp.name}: atacar (${cp.atk} dmg)</button>`).join('')+
+    `<button class="btn dim-btn" onclick="flee()" style="margin-top:3px;">🏃 Huir</button>`;
+}
+function renderBUI(){renderArena();renderBLog();renderBActions();}
+
+// ── Normal Attack
+function doAtk(){
+  if(!myTurn||battleOver)return;
+  if(defStance){defStance=false;addLog(`🛡️ Posición defensiva: no atacás este turno.`);myTurn=false;setTimeout(()=>postPlayer(),200);return;}
+  myTurn=false;
+  const ie=isEnergy();let dmg=ie?calcPhysDmg():calcMagicDmg();dmg+=Math.floor(Math.random()*4)-1;
+  if(Math.random()*100<currentEnemy.agi*0.8){addLog(`💨 ¡${currentEnemy.name} esquivó el ataque!`);myTurn=true;renderBUI();return;}
+  if(deathMarkActive){dmg*=2;deathMarkActive=false;addLog(`💀 ¡Marca Mortal! ${dmg} daño crítico`);}
+  else addLog(`⚔️ Atacás por ${dmg} daño`);
+  if(battleBuffs.lifesteal){const h=Math.floor(dmg*battleBuffs.lifesteal.val);playerHP=Math.min(player.maxHp,playerHP+h);if(h>0)addLog(`🩸+${h}HP`);}
+  sprAtk('fb-p','r');sprHit('fb-e');playFX(ie?'physical':'arcane','r');playDmgFX(dmg,'r');
+  enemyHP=Math.max(0,enemyHP-dmg);
+  setTimeout(()=>postPlayer(),350);
+}
+
+// ── Companion Attack
+function compAtk(idx){
+  if(!myTurn||battleOver)return;
+  const cp=companions[idx];if(!cp||!cp.alive)return;
+  myTurn=false;const dmg=cp.atk+Math.floor(Math.random()*5);
+  addLog(`🐾 ${cp.name} ataca por ${dmg} daño`);
+  const s=document.getElementById(`cs-${idx}`);if(s){s.classList.add('comp-atk');setTimeout(()=>s&&s.classList.remove('comp-atk'),480);}
+  sprHit('fb-e');playFX('beast','r');playDmgFX(dmg,'r');
+  enemyHP=Math.max(0,enemyHP-dmg);setTimeout(()=>postPlayer(),350);
+}
+
+// ── Talent
+function doTalent(id){
+  if(!myTurn||battleOver)return;
+  const allT=getAllTalents();const t=allT.find(x=>x.id===id);if(!t)return;
+  const cost=t.cost.mana||t.cost.energy||0;
+  if(playerRes<cost){addLog('¡Sin recurso!');return;}
+  playerRes=Math.max(0,playerRes-cost);myTurn=false;
+  const e=t.effect,pd=calcPhysDmg(),md=calcMagicDmg(),m=t.mult||1;
+  const fx=t.fx||'physical';
+  const isMag=['mdmg','double_magic','multi_mdmg','mdmg_stun','mdmg_heal','dmg_heal'].includes(e);
+  if(isMag)sprCast('fb-p');else sprAtk('fb-p','r');
+  playFX(fx,'r');
+
+  const applyD=d=>{
+    if(deathMarkActive){d*=2;deathMarkActive=false;addLog(`💀 ¡Marca Mortal!`);}
+    if(battleBuffs.lifesteal){const h=Math.floor(d*battleBuffs.lifesteal.val);playerHP=Math.min(player.maxHp,playerHP+h);if(h>0)addLog(`🩸+${h}HP`);}
+    sprHit('fb-e');playDmgFX(d,'r');enemyHP=Math.max(0,enemyHP-d);
+  };
+
+  switch(e){
+    case'dmg':{const d=Math.floor(pd*m);applyD(d);addLog(`✦${t.name}: ${d} daño físico`);break;}
+    case'mdmg':{const d=Math.floor(md*m);applyD(d);addLog(`✨${t.name}: ${d} daño mágico`);break;}
+    case'heal':{const h=calcHeal(m);playerHP=Math.min(player.maxHp,playerHP+h);playHealFX(`+${h}`);addLog(`💚${t.name}: +${h}HP`);break;}
+    case'hot':{hotEffects.push({hp:t.val,turns:t.turns});addLog(`💚${t.name}: regen ${t.val}HP/t`);break;}
+    case'dot':{dotEffects.push({dmg:t.val,turns:t.turns});addLog(`🔥${t.name}: ${t.val}/turno ×${t.turns}t`);break;}
+    case'buff':{battleBuffs[t.stat||'dmg']={val:t.val,turns:t.turns};addLog(`✦${t.name}: buff ${t.turns}t`);break;}
+    case'shield':{shieldVal+=t.val;addLog(`🔰${t.name}: +${t.val} escudo`);break;}
+    case'stun':{stunEnemy=true;addLog(`💫${t.name}: ¡aturdido!`);postPlayer();return;}
+    case'stun_dmg':{const d=Math.floor(pd*m);applyD(d);stunEnemy=true;addLog(`💫${t.name}: ${d} daño+aturdimiento`);postPlayer();return;}
+    case'immune':{immuneNextTurn=true;addLog(`✨${t.name}: inmune próximo ataque`);break;}
+    case'dodge':{dodgeNextTurn=true;addLog(`💨${t.name}: esquivás el próximo ataque`);break;}
+    case'dodge_counter':{dodgeNextTurn=true;battleBuffs['counterAtk']={val:1,turns:1};addLog(`💨${t.name}: esquivás y contraatacás`);break;}
+    case'double_hit':{const d=Math.floor(pd*m);applyD(d*2);addLog(`✦${t.name}: ${d}+${d}`);break;}
+    case'double_magic':{const d=Math.floor(md*m);applyD(d*2);addLog(`✨${t.name}: ${d}+${d} mágico`);break;}
+    case'triple_hit':{const d=Math.floor(pd*m);applyD(d*3);addLog(`✦${t.name}: ${d}×3=${d*3}`);break;}
+    case'multi_hit':{const d=Math.floor(pd*m),n=t.count||3;applyD(d*n);addLog(`✦${t.name}: ${d}×${n}=${d*n}`);break;}
+    case'multi_mdmg':{const d=Math.floor(md*m),n=t.count||3;applyD(d*n);addLog(`✨${t.name}: ${d}×${n} mágico`);break;}
+    case'dmg_dot':{const d=Math.floor(pd*m);applyD(d);dotEffects.push({dmg:t.dot||10,turns:3});addLog(`✦${t.name}: ${d} daño+sangrado`);break;}
+    case'dmg_heal':{const d=Math.floor(isMag?md*m:pd*m),h=Math.floor(d*0.5);applyD(d);playerHP=Math.min(player.maxHp,playerHP+h);playHealFX(`+${h}`);addLog(`✦${t.name}: ${d} daño +${h}HP`);break;}
+    case'mdmg_heal':{const d=Math.floor(md*m),h=Math.floor(player.maxHp*(t.healPct||0.2));applyD(d);playerHP=Math.min(player.maxHp,playerHP+h);playHealFX(`+${h}`);addLog(`✨${t.name}: ${d} mag +${h}HP`);break;}
+    case'mdmg_stun':{const d=Math.floor(md*m);applyD(d);stunEnemy=true;addLog(`✨${t.name}: ${d} mag+aturdido`);postPlayer();return;}
+    case'execute':{let d=Math.floor(pd*1.5);if(enemyHP/enemyHPmax<0.25){d=Math.floor(pd*3);addLog(`💀 ¡EJECUTAR! ${d} daño MASIVO`);}else addLog(`⚔️${t.name}: ${d}`);applyD(d);break;}
+    case'berserk':{battleBuffs['dmg']={val:0.5,turns:3};const c=Math.floor(player.maxHp*0.1);playerHP=Math.max(1,playerHP-c);addLog(`💢 Berserker! +50% daño,-${c}HP`);break;}
+    case'full_berserk':{battleBuffs['dmg']={val:0.6,turns:3};const hg=Math.floor(player.maxHp*0.5);playerHP=Math.min(player.maxHp,playerHP+hg);playHealFX(`+${hg}`);addLog(`💢 Frenesí! +60% daño,+${hg}HP`);break;}
+    case'lifesteal':{battleBuffs['lifesteal']={val:t.val,turns:4};addLog(`🩸${t.name}: robo de vida activado`);break;}
+    case'lifesteal_big':{const d=Math.floor(pd*m),h=Math.floor(d*(t.steal||0.3));applyD(d);playerHP=Math.min(player.maxHp,playerHP+h);playHealFX(`+${h}`);addLog(`🩸${t.name}: ${d} daño +${h}HP`);break;}
+    case'mana_shield':{manaShieldActive=true;addLog(`💧${t.name}: maná absorbe daño`);break;}
+    case'revive':{player._revReady=true;addLog(`✝️${t.name}: resurrección preparada`);break;}
+    case'meditate':{playerHP=Math.min(player.maxHp,playerHP+t.hp);playerRes=Math.min(player.maxRes,playerRes+(t.energy||25));playHealFX(`+${t.hp}`);addLog(`☯️${t.name}: +${t.hp}HP +${t.energy}recurso`);break;}
+    case'transcend':{battleBuffs['dmg']={val:0.4,turns:2};battleBuffs['def']={val:0.4,turns:2};addLog(`☯️${t.name}: +40% daño y defensa 2t`);break;}
+    case'debuff':{battleBuffs['eMiss']={val:0.4,turns:3};addLog(`💨${t.name}: precisión enemiga -40%`);break;}
+    case'debuff_dmg':{battleBuffs['eDmgR']={val:t.val,turns:t.turns||2};addLog(`⬇️${t.name}: daño enemigo -${Math.floor(t.val*100)}%`);break;}
+    case'full_buff':{battleBuffs['allStats']={val:t.val,turns:t.turns};addLog(`✨${t.name}: todos stats +${Math.floor(t.val*100)}%`);break;}
+    case'aoe_heal_dmg':{playerHP=Math.min(player.maxHp,playerHP+t.val);applyD(t.val);playHealFX(`+${t.val}`);addLog(`✨${t.name}: +${t.val}HP -${t.val}enemigo`);break;}
+    case'regen_energy':{playerRes=Math.min(player.maxRes,playerRes+t.val);addLog(`⚡${t.name}: +${t.val}recurso`);break;}
+    case'blind':{battleBuffs['eMiss']={val:1,turns:1};addLog(`👁️${t.name}: enemigo falla próximo ataque`);break;}
+    case'last_stand':{battleBuffs['lastStand']={val:0.7,turns:3};addLog(`💪${t.name}: +70% daño si HP<20%`);break;}
+    case'death_blow':{const d=Math.floor(pd*m);applyD(d);if(enemyHP<=0)playerRes=Math.min(player.maxRes,playerRes+50);addLog(`💀${t.name}: ${d} daño`);break;}
+    case'passive_def':addLog(`🛡️${t.name}: ya activo (pasivo)`);break;
+    case'def_stance':{battleBuffs['def']={val:0.5,turns:t.turns||2};battleBuffs['mdef']={val:0.5,turns:t.turns||2};defStance=true;addLog(`🛡️ Posición Defensiva: +6 DEF y +6 DefMág ${t.turns}t. Salteas el próximo turno.`);postPlayer();return;}
+    case'big_shield':{shieldVal+=t.val;if(t.def>0)battleBuffs['def']={val:t.def,turns:2};addLog(`🔰${t.name}: +${t.val} escudo`);break;}
+    case'immune_shield':{immuneNextTurn=true;shieldVal+=(t.val||0);addLog(`✨${t.name}: inmune + ${t.val||0} escudo`);break;}
+    case'super_shield':{immuneNextTurn=true;shieldVal+=100;playerHP=Math.min(player.maxHp,playerHP+50);playHealFX('+50');addLog(`✨${t.name}: inmune+100escudo+50HP`);break;}
+    case'heal_revive':{const h=calcHeal(m);playerHP=Math.min(player.maxHp,playerHP+h);player._revReady=true;playHealFX(`+${h}`);addLog(`✝️${t.name}: +${h}HP+resurrección`);break;}
+    case'heal_hot':{const h=calcHeal(m);playerHP=Math.min(player.maxHp,playerHP+h);hotEffects.push({hp:t.hot.val,turns:t.hot.turns});playHealFX(`+${h}`);addLog(`💚${t.name}: +${h}HP+regen`);break;}
+    case'dmg_heal_big':{const d=Math.floor(pd*m),h=Math.floor(player.maxHp*(t.healPct||0.4));applyD(d);playerHP=Math.min(player.maxHp,playerHP+h);playHealFX(`+${h}`);addLog(`☯️${t.name}: ${d} daño +${h}HP`);break;}
+    case'summon_companion':{
+      const cd=t.companion;
+      if(companions.find(cp=>cp.type===cd.type)){addLog(`${cd.sprite} Ya tenés un ${cd.name}`);myTurn=true;renderBUI();return;}
+      companions.push({...cd,maxHp:cd.hp,alive:true});
+      playFX('beast','r');addLog(`${cd.sprite} ¡${cd.name} invocado! HP:${cd.hp} Atk:${cd.atk}`);break;
+    }
+    case'summon_raven':{
+      const cd=t.companion;companions.push({...cd,maxHp:cd.hp,alive:true});
+      battleBuffs['eMiss']={val:0.2,turns:99};
+      playFX('beast','r');addLog(`${cd.sprite} ¡${cd.name} invocado! Reduce evasión enemiga`);break;
+    }
+    case'companion_atk':{
+      const aliveC=companions.filter(cp=>cp.alive);if(!aliveC.length){addLog('Sin compañeros');myTurn=true;renderBUI();return;}
+      let tot=0;aliveC.forEach(cp=>{const d=Math.floor(cp.atk*m);tot+=d;addLog(`🐾${cp.name}: ${d}`);});applyD(tot);playFX('beast','r');break;
+    }
+    case'companion_stun':{
+      const cp=companions.find(c=>c.alive);if(!cp){addLog('Sin compañeros');myTurn=true;renderBUI();return;}
+      const d=Math.floor(cp.atk*(t.mult||1));applyD(d);stunEnemy=true;addLog(`🐗¡${cp.name} embiste! ${d} daño+aturdido`);postPlayer();return;
+    }
+    case'companion_joint_atk':{
+      const cp=companions.find(c=>c.alive);const d=Math.floor((pd+(cp?cp.atk:0))*m);applyD(d);addLog(`🤝 Ataque conjunto: ${d}`);break;
+    }
+    case'companion_triple':{
+      const cp=companions.find(c=>c.alive);if(!cp){addLog('Sin compañeros');myTurn=true;renderBUI();return;}
+      const n=t.count||3,d=cp.atk*n;applyD(d);addLog(`💢¡${cp.name} furia! ${n}×${cp.atk}=${d}`);break;
+    }
+    case'companion_all_atk':{
+      const aliveC=companions.filter(c=>c.alive);if(!aliveC.length){addLog('Sin compañeros');myTurn=true;renderBUI();return;}
+      const d=Math.floor(aliveC.reduce((s,cp)=>s+cp.atk,0)*(t.mult||1));applyD(d);addLog(`🦁 ¡Todas las bestias! ${d} daño`);break;
+    }
+    default:addLog(`✦${t.name}`);
+  }
+  setTimeout(()=>postPlayer(),350);
+}
+
+function postPlayer(){
+  dotEffects=dotEffects.filter(d=>{if(d.turns<=0)return false;d.turns--;enemyHP=Math.max(0,enemyHP-d.dmg);addLog(`🔥DoT: ${d.dmg} (${d.turns}t)`);return d.turns>0;});
+  hotEffects=hotEffects.filter(h=>{if(h.turns<=0)return false;h.turns--;playerHP=Math.min(player.maxHp,playerHP+h.hp);addLog(`💚Regen: +${h.hp} (${h.turns}t)`);return h.turns>0;});
+  if(enemyHP<=0){addLog(`💀 ¡${currentEnemy.name} derrotado!`);battleOver=true;renderBUI();setTimeout(()=>showResult('win'),900);return;}
+  renderBUI();setTimeout(enemyTurn,900);
+}
+
+function enemyTurn(){
+  if(battleOver)return;
+  Object.keys(battleBuffs).forEach(k=>{if(battleBuffs[k].turns!==99){battleBuffs[k].turns--;if(battleBuffs[k].turns<=0)delete battleBuffs[k];}});
+  if(enemyDotTurns>0){enemyDotTurns--;playerHP=Math.max(0,playerHP-enemyDotDmg);addLog(`☠️Veneno: -${enemyDotDmg}HP`);}
+  if(currentEnemy.regen){enemyHP=Math.min(enemyHPmax,enemyHP+currentEnemy.regen);addLog(`🧌${currentEnemy.name} regenera ${currentEnemy.regen}HP`);}
+  if(stunEnemy){stunEnemy=false;addLog(`💫${currentEnemy.name} pierde su turno.`);myTurn=true;renderBUI();return;}
+  if(immuneNextTurn){immuneNextTurn=false;addLog(`🌟 ¡Inmunidad! Ataque absorbido.`);myTurn=true;renderBUI();return;}
+  if((battleBuffs['eMiss']&&Math.random()<battleBuffs['eMiss'].val)||Math.random()*100<calcDodge()*0.4){addLog(`💨 Esquivaste el ataque`);myTurn=true;renderBUI();return;}
+  if(dodgeNextTurn){dodgeNextTurn=false;addLog(`💨 Esquivás a ${currentEnemy.name}`);if(battleBuffs['counterAtk']){delete battleBuffs['counterAtk'];const d=calcPhysDmg();enemyHP=Math.max(0,enemyHP-d);addLog(`↩️Contraataque: ${d}`);}myTurn=true;renderBUI();return;}
+
+  const en=currentEnemy;
+  let dmg=Math.floor(3+en.str*1.4+Math.random()*5);
+  dmg=Math.floor(dmg*(en.dmgM||1.0));
+  if(battleBuffs['eDmgR'])dmg=Math.floor(dmg*(1-battleBuffs['eDmgR'].val));
+  const def=en.magic?calcMDef():calcDef();
+  dmg=Math.max(1,dmg-Math.floor(def*0.5));
+  if(defStance)dmg=Math.floor(dmg*0.35);
+  if(manaShieldActive){const ab=Math.min(dmg,playerRes);playerRes-=ab;dmg-=ab;if(ab>0)addLog(`💧Maná absorbió ${ab}`);if(playerRes<=0)manaShieldActive=false;}
+  if(shieldVal>0&&dmg>0){const ab=Math.min(dmg,shieldVal);shieldVal-=ab;dmg-=ab;if(ab>0)addLog(`🔰Escudo absorbió ${ab}`);}
+  if(en.poison&&Math.random()<0.3&&enemyDotTurns===0){enemyDotTurns=3;enemyDotDmg=12;addLog(`🕷️¡${en.name} te envenena! (12/turno)`);}
+  if(en.drain&&Math.random()<0.3){const dr=Math.floor(dmg*0.35);enemyHP=Math.min(enemyHPmax,enemyHP+dr);addLog(`🧛Drena ${dr}HP`);}
+  if(en.fireBreath&&Math.random()<0.25){dmg=Math.floor(dmg*1.6);addLog(`🔥¡${en.name} escupe fuego!`);}
+  if(battleBuffs['lastStand']&&playerHP/player.maxHp<0.2){const extra=Math.floor(calcPhysDmg()*battleBuffs['lastStand'].val);addLog(`💪¡Último Bastión activo!`);}
+
+  if(dmg>0){
+    addLog(`💢${en.name} te ataca por ${dmg} daño`);
+    sprAtk('fb-e','l');sprHit('fb-p');
+    playFX(en.magic?'arcane':'physical','l');playDmgFX(dmg,'l');
+    playerHP=Math.max(0,playerHP-dmg);
+    const aliveC=companions.filter(cp=>cp.alive);
+    if(aliveC.length&&Math.random()<0.25){const cp=aliveC[0];const cd=Math.floor(dmg*0.35);cp.hp=Math.max(0,cp.hp-cd);if(cp.hp<=0){cp.alive=false;addLog(`💔¡${cp.name} derrotado!`);}else addLog(`🐾${cp.name} recibe ${cd}`);}
+  }else addLog(`🛡️¡Tu defensa absorbió todo el daño!`);
+
+  playerRes=Math.min(player.maxRes,playerRes+(isEnergy()?9:6));
+  if(playerHP<=0){
+    if(player._revReady){player._revReady=false;playerHP=Math.floor(player.maxHp*0.3);addLog(`✝️¡Resurrección! ${playerHP}HP`);myTurn=true;renderBUI();return;}
+    addLog(`☠️¡Has sido derrotado!`);battleOver=true;renderBUI();setTimeout(()=>showResult('lose'),900);return;
+  }
+  myTurn=true;renderBUI();
+}
+
+function flee(){addLog('🏃¡Huiste!');battleOver=true;renderBUI();setTimeout(()=>showResult('flee'),600);}
+
+// ════ RESULTADO
+function showResult(r){
+  const win=r==='win';
+  pendingXP=win?currentEnemy.xpR:0;pendingGold=win?currentEnemy.gold:0;
+  const newXP=player.xp+pendingXP,canLevel=newXP>=xpForLevel(player.level);
+  const hHeal=Math.floor(player.maxHp*0.3),rHeal=Math.floor(player.maxRes*0.4);
+  playerHP=Math.min(player.maxHp,playerHP+hHeal);playerRes=Math.min(player.maxRes,playerRes+rHeal);
+  document.getElementById('res-icon').textContent=win?'🏆':r==='lose'?'💀':'🏃';
+  const rt=document.getElementById('res-title');rt.textContent=win?'¡VICTORIA!':r==='lose'?'DERROTA':'¡Escapaste!';rt.style.color=win?'#c8960c':'#c0392b';
+  document.getElementById('res-rewards').innerHTML=`${win?`<p class="green" style="font-size:12px;margin-bottom:3px;">✨ +${pendingXP} XP</p><p style="color:#f0c030;font-size:12px;margin-bottom:5px;">🪙 +${pendingGold} Oro</p>`:''}<p style="color:#e84040;font-size:11px;">❤️ +${hHeal}HP recuperados</p>${canLevel&&win?'<p class="gold" style="font-size:12px;animation:glow 2s infinite;margin-top:5px;">⬆️ ¡NIVEL DISPONIBLE!</p>':''}`;
+  const btns=document.getElementById('res-btns');btns.innerHTML='';
+  if(win&&canLevel){const b=document.createElement('button');b.className='btn green-btn';b.textContent='⬆️ Subir Nivel';b.onclick=()=>{applyRewards();renderLU();go('s-levelup');};btns.appendChild(b);}
+  const b2=document.createElement('button');b2.className='btn dim-btn';b2.textContent=win?'Continuar':'Volver al poblado';b2.onclick=()=>{applyRewards();go('s-hub');};btns.appendChild(b2);
+  go('s-result');
+}
+function applyRewards(){player.xp+=pendingXP;player.gold+=pendingGold;player.hp=Math.max(1,playerHP);player.res=playerRes;pendingXP=0;pendingGold=0;companions=[];saveGame();renderHub();}
+
+// ════ NIVEL
+function renderLU(){
+  const nlv=player.level+1;document.getElementById('lu-title').textContent=`¡NIVEL ${nlv}!`;
+  window._luNew=[];
+  window.luTog=function(treeId,tid){
+    const c=getClass(),tree=c.trees.find(tr=>tr.id===treeId);if(!tree)return;
+    const owned=[...player.talents,...(window._luNew||[])];
+    if(window._luNew.includes(tid)){if(tree.talents.filter(t=>t.req===tid&&window._luNew.includes(t.id)).length)return;window._luNew=window._luNew.filter(x=>x!==tid);}
+    else{if(window._luNew.length>=1)return;if(player.talents.includes(tid))return;if(!isTUnlocked(tid,owned,tree))return;const t=tree.talents.find(x=>x.id===tid);if(t&&t.minTree&&!capstoneOk(t,tree,owned,nlv))return;window._luNew.push(tid);}
+    renderLUTree();
+  };
+  renderLUTree();
+}
+function renderLUTree(){
+  const c=getClass(),cont=document.getElementById('lu-tree');if(!cont)return;
+  const combined=[...player.talents,...(window._luNew||[])];
+  cont.innerHTML=`<p class="title center mb8" style="font-size:11px;">Aprender 1 nuevo talento (opcional):</p>`+
+  c.trees.map(tree=>`<div class="card" style="border-color:#3a2a10;margin-bottom:7px;"><div style="display:flex;align-items:center;gap:5px;margin-bottom:5px;"><span style="font-size:14px;">${tree.icon}</span><p class="title" style="font-size:11px;">${tree.name}</p></div>${renderTree(tree,combined,'luTog',combined.length+1,window._luNew||[],player.level+1)}</div>`).join('');
+}
+function confirmLevelUp(){
+  const nlv=player.level+1;player.level=nlv;
+  player.xp-=(XP_TABLE[nlv-1]||0)-(XP_TABLE[nlv-2]||0);
+  if(player.xp<0)player.xp=0;
+  player.maxHp=calcMaxHP(player);player.maxRes=calcMaxRes(player);
+  player.hp=player.maxHp;player.res=player.maxRes;
+  player.pendingPts=(player.pendingPts||0)+3;
+  player.talentPts=(player.talentPts||1)+1;
+  if(window._luNew&&window._luNew.length){player.talents.push(...window._luNew);player.talentPts=Math.max(0,(player.talentPts||0)-window._luNew.length);}
+  window._luNew=[];applyPassives();saveGame();renderHub();go('s-hub');
+}
+
+// ════ CHARSHEET
+let csTemp={str:0,agi:0,int:0,vit:0,spi:0},csPts=0;
+function renderCsStats(){
+  csPts=player.pendingPts||0;csTemp={str:0,agi:0,int:0,vit:0,spi:0};applyPassives();
+  const c=CLASSES.find(x=>x.id===player.class),ie=c.resource==='energy';
+  document.getElementById('cs-content').innerHTML=`
+    <div class="card" style="border-color:#8b6914;"><div class="row mb8"><span style="font-size:30px;">${c.icon}</span><div style="flex:1"><p class="title" style="font-size:13px;">${player.name}</p><p style="font-family:'Crimson Text',serif;color:${c.color};font-size:10px;">${c.name} · Nivel ${player.level}</p><p class="dim" style="font-size:9px;">XP:${player.xp}/${xpForLevel(player.level)}</p></div><span class="gold" style="font-size:11px;">🪙${player.gold}</span></div><div class="bar-wrap">${hpBar(player.hp,player.maxHp,'#e84040')}</div><div class="bar-wrap">${resBar(player.res,player.maxRes,ie)}</div></div>
+    <div class="card" style="border-color:#5a4010;"><p class="title mb8" style="font-size:11px;">⚔️ Resumen de Combate</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;">
+        <div class="sbox"><p style="color:#e84040;font-size:9px;">Daño Físico</p><p class="title" style="font-size:18px;color:#ff8866;">${calcPhysDmg()}</p><p class="dim" style="font-size:8px;">FUE×1+AGI×0.5+arma</p></div>
+        <div class="sbox"><p style="color:#b86cd8;font-size:9px;">Daño Mágico</p><p class="title" style="font-size:18px;color:#cc88ff;">${calcMagicDmg()}</p><p class="dim" style="font-size:8px;">INT×1+arma×0.5</p></div>
+        <div class="sbox"><p style="color:#4488ff;font-size:9px;">Def. Física</p><p class="title" style="font-size:18px;color:#88aaff;">${calcDef()}</p><p class="dim" style="font-size:8px;">VIT×1+AGI×0.5+equipo</p></div>
+        <div class="sbox"><p style="color:#44aacc;font-size:9px;">Def. Mágica</p><p class="title" style="font-size:18px;color:#88ddff;">${calcMDef()}</p><p class="dim" style="font-size:8px;">VIT×1+SPI×0.5</p></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:5px;flex-wrap:wrap;">
+        <p style="color:#ffcc22;font-size:9px;">💨 Esquivar: ${calcDodge()}%</p>
+        <p style="color:#88ddff;font-size:9px;">❤️ HP Máx: ${player.maxHp}</p>
+        <p style="color:${ie?'#ffcc22':'#4488ff'};font-size:9px;">${ie?'⚡':'💧'} Máx: ${player.maxRes}</p>
+        ${passiveDef>0?`<p style="color:#88aaff;font-size:9px;">🛡️ Pasivo: +${passiveDef}DEF/MDef</p>`:''}
+      </div>
+    </div>
+    <div class="card" style="border-color:#8b6914;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;"><p class="title" style="font-size:11px;">Atributos</p>${csPts>0?`<span class="green" style="font-size:10px;">+${csPts} pts</span>`:''}</div>
+      ${Object.keys(player.stats).map(s=>`<div class="stat-row"><span class="label" style="width:95px;font-size:11px;">${STAT_LABELS[s]}</span>${csPts>0?`<button class="stat-btn" onclick="csChStat('${s}',-1)">−</button>`:''}<span class="stat-val" id="csv-${s}">${player.stats[s]+(csTemp[s]||0)}</span>${csPts>0?`<button class="stat-btn plus" onclick="csChStat('${s}',1)">+</button>`:''}<span class="dim" style="font-size:8px;">(+${eqBonus(s)}eq)</span></div>`).join('')}
+      <div class="sbox mt8"><p class="dim" style="font-size:8px;margin-bottom:2px;color:#5a8050;">📖 Cada punto en…</p>${Object.entries(STAT_DESC).map(([s,d])=>`<p style="font-size:8px;color:#5a4010;font-family:'Crimson Text',serif;margin-bottom:1px;">${d}</p>`).join('')}</div>
+      <button class="btn green-btn mt8" id="cs-save-btn" style="display:none;" onclick="csSave()">Guardar cambios</button>
+    </div>`;
+}
+window.csChStat=function(s,d){
+  if(d>0&&csPts<=0)return;if(d<0&&(csTemp[s]||0)<=0)return;
+  csTemp[s]=(csTemp[s]||0)+d;csPts-=d;
+  const el=document.getElementById(`csv-${s}`);if(el)el.textContent=player.stats[s]+(csTemp[s]||0);
+  const sb=document.getElementById('cs-save-btn');if(sb)sb.style.display=Object.values(csTemp).some(v=>v>0)?'block':'none';
+};
+window.csSave=function(){
+  Object.keys(csTemp).forEach(k=>player.stats[k]+=(csTemp[k]||0));
+  player.pendingPts=csPts;
+  player.maxHp=calcMaxHP(player);player.hp=Math.min(player.hp,player.maxHp);
+  player.maxRes=calcMaxRes(player);
+  applyPassives();saveGame();renderHub();renderCsStats();
+};
+
+function renderCsEquip(){
+  document.getElementById('cs-content').innerHTML=`<div class="card" style="border-color:#8b6914;"><p class="title mb8" style="font-size:11px;">⚔️ Equipamiento</p><div class="equip-grid">${Object.entries(SLOT_INFO).map(([slot,info])=>{const iid=player.equipment[slot];const item=iid?ITEMS[iid]:null;return `<div class="equip-slot ${item?'filled':''}" onclick="unequipSlot('${slot}')"><span class="slot-icon">${item?item.icon:info.icon}</span><span class="slot-name">${info.label}</span><span class="slot-item">${item?item.name:'— vacío —'}</span></div>`;}).join('')}</div></div><div class="card" style="border-color:#5a4010;"><p class="title mb8" style="font-size:11px;">📊 Bonos de Equipo</p>${['str','agi','int','vit','spi'].map(s=>{const b=eqBonus(s);return b?`<p class="label" style="font-size:11px;">+${b} ${STAT_LABELS[s]}</p>`:''}).join('')}${(()=>{const d=Object.values(player.equipment).reduce((s,id)=>{const it=ITEMS[id];return s+(it&&it.dmg?it.dmg:0);},0);return d?`<p style="color:#e84040;font-family:'Crimson Text',serif;font-size:11px;">+${d} Daño</p>`:''})()}${(()=>{const d=eqBonus('def');return d?`<p style="color:#4488ff;font-family:'Crimson Text',serif;font-size:11px;">+${d} Defensa</p>`:''})()}</div>`;
+  window.unequipSlot=function(slot){const iid=player.equipment[slot];if(iid){const it=ITEMS[iid];if(confirm(`¿Desequipar "${it.name}"?`)){player.equipment[slot]=null;if(it.twoHand)player.equipment.offhand=null;applyPassives();saveGame();renderCsEquip();renderHub();}}};
+}
+
+function renderCsTalents(){
+  const c=getClass();const myT=getMyTalents();
+  document.getElementById('cs-content').innerHTML=`<div class="card" style="border-color:#8b6914;margin-bottom:7px;"><p class="title mb8" style="font-size:11px;">✦ Talentos Activos</p>${myT.map(t=>`<div class="t-card learned" style="cursor:default;margin-bottom:5px;"><div style="display:flex;justify-content:space-between;margin-bottom:2px;"><p class="title" style="font-size:10px;">✦${t.minTree?'⭐':''} ${t.name}</p><span style="font-size:8px;color:${isEnergy()?'#ffcc22':'#4488ff'};">${isEnergy()?'⚡':'💧'}${t.cost.mana||t.cost.energy||0}</span></div><p class="dim" style="font-size:9px;">${t.desc}</p></div>`).join('')}</div><div class="card" style="border-color:#3a2a10;"><p class="title mb8" style="font-size:10px;color:#8a6030;">Árbol completo — nuevos talentos al subir nivel</p>${c.trees.map(tree=>`<div style="margin-bottom:9px;"><div style="display:flex;align-items:center;gap:5px;margin-bottom:4px;"><span style="font-size:13px;">${tree.icon}</span><p class="title" style="font-size:11px;">${tree.name}</p></div>${renderTree(tree,player.talents,null,0,[],player.level)}</div>`).join('')}</div>`;
+}
+
+// ════ MERCADO
+function mTab(t){currentMTab=t;document.querySelectorAll('[id^="mtab-"]').forEach(el=>el.classList.remove('active'));const el=document.getElementById('mtab-'+t);if(el)el.classList.add('active');renderMarket();}
+function renderMarket(){
+  document.getElementById('market-gold').textContent=`🪙${player.gold}`;
+  const all=Object.values(ITEMS);
+  const filt=currentMTab==='weapons'?all.filter(i=>['mainhand','offhand'].includes(i.slot)):currentMTab==='armor'?all.filter(i=>['chest','head','legs','hands','feet'].includes(i.slot)):all.filter(i=>i.slot==='neck');
+  document.getElementById('market-list').innerHTML=filt.map(item=>{
+    const owned=Object.values(player.equipment).includes(item.id);
+    const afford=player.gold>=item.cost,canEq=meetsReq(item);
+    const statsStr=['dmg','def','str','agi','int','vit','spi'].filter(k=>item[k]).map(k=>`<span style="font-size:9px;color:#8a9860;">+${item[k]} ${{dmg:'Dmg',def:'DEF',str:'FUE',agi:'AGI',int:'INT',vit:'VIT',spi:'SPI'}[k]}</span>`).join(' ');
+    return `<div class="market-item ${owned?'owned':''}${!canEq?' cant':''}">
+      <span style="font-size:21px;flex-shrink:0;">${item.icon}</span>
+      <div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;"><p class="title" style="font-size:11px;">${item.name}</p><span class="dim" style="font-size:8px;">${SLOT_INFO[item.slot]?.label||''}</span>${item.twoHand?`<span style="font-size:8px;color:#c8960c;">(2m)</span>`:''}</div><p class="dim" style="font-size:9px;margin-top:1px;">${item.desc}</p><div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:2px;">${statsStr}</div>${item.reqD?`<p style="${canEq?'color:#4aaa44':'color:#c84040'};font-size:8px;margin-top:1px;">${canEq?'✓ Req: ':'✗ Req: '}${item.reqD}</p>`:''}</div>
+      <div style="flex-shrink:0;text-align:right;"><p class="gold" style="font-size:10px;margin-bottom:2px;">🪙${item.cost}</p>${owned?`<span class="green" style="font-size:8px;">✓Equipado</span>`:!canEq?`<span style="color:#c84040;font-size:8px;">Sin req.</span>`:`<button class="btn sm ${afford?'':'dim-btn'}" style="width:auto;" onclick="${afford?`buyItem('${item.id}')`:''}">${afford?'Comprar':'Sin oro'}</button>`}</div>
+    </div>`;
+  }).join('');
+}
+function buyItem(id){
+  const item=ITEMS[id];if(!item||player.gold<item.cost)return;
+  if(!meetsReq(item)){alert('No cumplís los requisitos.');return;}
+  player.gold-=item.cost;
+  if(item.twoHand){player.equipment.mainhand=id;player.equipment.offhand=null;}
+  else if(item.slot==='mainhand')player.equipment.mainhand=id;
+  else if(item.slot==='offhand'){const mh=player.equipment.mainhand?ITEMS[player.equipment.mainhand]:null;if(mh&&mh.twoHand){alert('Desequipá tu arma de dos manos primero.');player.gold+=item.cost;return;}player.equipment.offhand=id;}
+  else player.equipment[item.slot]=id;
+  saveGame();renderMarket();renderHub();
+}
+
+// ════ INIT
+document.addEventListener('DOMContentLoaded',()=>{
+  const inp=document.getElementById('inp-name');
+  if(inp)inp.addEventListener('keydown',e=>{if(e.key==='Enter')saveName();});
+  renderTitleScreen();
+});
+
+</script>
+</body>
+</html>
